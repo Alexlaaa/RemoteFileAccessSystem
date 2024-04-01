@@ -12,6 +12,8 @@ public class ClientUI {
 
   private final ClientService clientService;
   private final Scanner scanner = new Scanner(System.in);
+  private String serverAddress;
+  private int serverPort;
 
   /**
    * Constructs a ClientUI with the specified ClientService.
@@ -23,6 +25,27 @@ public class ClientUI {
     this.clientService = clientService;
     // Initial network setup based on prompt given to user.
     setupNetworkStrategy();
+  }
+
+  /**
+   * Initializes the ClientUI by setting up the server configuration and network strategy.
+   *
+   * @throws IOException If an I/O error occurs during setup.
+   */
+  public void initialize() throws IOException {
+    setServerConfig(); // Done once, at the start
+    setupNetworkStrategy(); // Can be changed by the user
+  }
+
+  /**
+   * Sets up the server configuration based on user input.
+   */
+  private void setServerConfig() {
+    System.out.println("Enter server address:");
+    serverAddress = scanner.nextLine();
+    System.out.println("Enter server port:");
+    serverPort = scanner.nextInt();
+    scanner.nextLine();  // Consume newline
   }
 
   /**
@@ -39,7 +62,7 @@ public class ClientUI {
             : Constants.NetworkStrategyType.AT_MOST_ONCE;
 
     // Initialize ClientUDP
-    ClientUDP clientUDP = new ClientUDP("serverAddress", 12345, 1000, 1,
+    ClientUDP clientUDP = new ClientUDP(serverAddress, serverPort, 1000, 1,
         1);
     // Initialize ClientNetwork with the selected strategy
     ClientNetwork clientNetwork = new ClientNetwork(clientUDP, selectedStrategy);
@@ -53,6 +76,7 @@ public class ClientUI {
    */
   public void start() throws IOException {
     System.out.println("Client UI Started.");
+    initialize();
 
     while (true) {
       System.out.println(
