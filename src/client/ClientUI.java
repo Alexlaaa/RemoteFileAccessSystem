@@ -23,8 +23,7 @@ public class ClientUI {
    */
   public ClientUI(ClientService clientService) throws IOException {
     this.clientService = clientService;
-    // Initial network setup based on prompt given to user.
-    setupNetworkStrategy();
+    initialize();
   }
 
   /**
@@ -76,7 +75,6 @@ public class ClientUI {
    */
   public void start() throws IOException {
     System.out.println("Client UI Started.");
-    initialize();
 
     while (true) {
       System.out.println(
