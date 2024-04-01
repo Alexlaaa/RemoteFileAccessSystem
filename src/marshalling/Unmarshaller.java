@@ -3,7 +3,6 @@ package marshalling;
 import common.Constants;
 import common.Request;
 import common.Response;
-
 import java.nio.ByteBuffer;
 
 /**
@@ -16,16 +15,18 @@ public class Unmarshaller {
   }
 
   /**
-   * Unmarshal a byte array into a Request object.
-   * Used by the server to convert incoming byte arrays from client into Request objects.
+   * Unmarshal a byte array into a Request object. Used by the server to convert incoming byte
+   * arrays from client into Request objects.
    *
    * @param data The byte array to unmarshal.
    * @return The unmarshalled Request object.
    */
   public static Request unmarshalRequest(byte[] data) {
-    ByteBuffer buffer = ByteBuffer.wrap(data); // wrap the byte array in a ByteBuffer to provide a structured way to access the data
+    ByteBuffer buffer = ByteBuffer.wrap(
+        data); // wrap the byte array in a ByteBuffer to provide a structured way to access the data
 
-    // Extract the operation type, offset, and monitor duration from the byte buffer.
+    // Extract the requestId, operation type, offset, and monitor duration from the byte buffer.
+    long requestId = buffer.getLong();
     Constants.OperationType operationType = Constants.OperationType.values()[buffer.getInt()]; // integer is used to access the corresponding OperationType enum value
     long offset = buffer.getLong();
     long monitorDuration = buffer.getLong();
@@ -39,7 +40,7 @@ public class Unmarshaller {
     // Depending on the operation type, construct and return the appropriate Request object.
     switch (operationType) {
       case READ:
-        return new Request(operationType, filePath, offset);
+        return new Request(requestId, operationType, filePath, offset);
       case WRITE:
         int dataSize = buffer.getInt();
         byte[] fileData = null;
@@ -47,23 +48,24 @@ public class Unmarshaller {
           fileData = new byte[dataSize];
           buffer.get(fileData);
         }
-        return new Request(operationType, filePath, offset, fileData);
+        return new Request(requestId, operationType, filePath, offset, fileData);
       case MONITOR:
-        return new Request(operationType, filePath, true, monitorDuration);
+        return new Request(requestId, operationType, filePath, true, monitorDuration);
       default:
         throw new IllegalArgumentException("Unrecognized operation type for unmarshalling Request");
     }
   }
 
   /**
-   * Unmarshal a byte array into a Response object.
-   * Used by the client to convert incoming byte arrays from server into Response objects.
+   * Unmarshal a byte array into a Response object. Used by the client to convert incoming byte
+   * arrays from server into Response objects.
    *
    * @param data The byte array to unmarshal.
    * @return The unmarshalled Response object.
    */
   public static Response unmarshalResponse(byte[] data) {
-    ByteBuffer buffer = ByteBuffer.wrap(data); // wrap the byte array in a ByteBuffer to provide a structured way to access the data
+    ByteBuffer buffer = ByteBuffer.wrap(
+        data); // wrap the byte array in a ByteBuffer to provide a structured way to access the data
 
     // Extract the status code from the byte buffer.
     Constants.StatusCode statusCode = Constants.StatusCode.values()[buffer.getInt()]; // integer is used to access the corresponding StatusCode enum value

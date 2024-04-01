@@ -1,5 +1,7 @@
 public class Main {
-    public static void main(String[] args) {
+
+  public static void main(String[] args) {
+    System.out.println("hello world");
 //        // Server should be running in a separate thread as it's a blocking operation.
 //        Thread serverThread = new Thread(() -> {
 //            try {
@@ -46,9 +48,9 @@ public class Main {
 //            e.printStackTrace();
 //        }
 
-        // Instantiate in order!
-        //ServerService serverService = new ServerService(); // Assuming ServerService doesn't depend on ServerUDP or ServerNetwork
-        //ServerNetwork serverNetwork = new ServerNetwork(serverService); // Create ServerNetwork with reference to ServerService
-        //ServerUDP serverUDP = new ServerUDP(port, receiveProb, sendProb, serverNetwork); // Create ServerUDP with reference to ServerNetwork
-    }
+    // Instantiate in order!
+    //ServerService serverService = new ServerService(); // Assuming ServerService doesn't depend on ServerUDP or ServerNetwork
+    //ServerNetwork serverNetwork = new ServerNetwork(serverService); // Create ServerNetwork with reference to ServerService
+    //ServerUDP serverUDP = new ServerUDP(port, receiveProb, sendProb, serverNetwork); // Create ServerUDP with reference to ServerNetwork
+  }
 }

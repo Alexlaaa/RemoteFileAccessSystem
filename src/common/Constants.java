@@ -1,8 +1,10 @@
 package common;
+
 public class Constants {
 
   /**
-   * Enum representing the types of operations that can be performed in the remote file access system.
+   * Enum representing the types of operations that can be performed in the remote file access
+   * system.
    */
   public enum OperationType {
     SHUTDOWN_SERVER("Shutdown Server"),
@@ -57,5 +59,13 @@ public class Constants {
     public String getDescription() {
       return description;
     }
+  }
+
+  /**
+   * Enum for identifying the network strategy type to be used in ClientNetwork.
+   */
+  public enum NetworkStrategyType {
+    AT_LEAST_ONCE,
+    AT_MOST_ONCE
   }
 }

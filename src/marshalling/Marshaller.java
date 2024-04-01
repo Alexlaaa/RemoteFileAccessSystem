@@ -2,7 +2,6 @@ package marshalling;
 
 import common.Request;
 import common.Response;
-
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
@@ -16,8 +15,8 @@ public class Marshaller {
   }
 
   /**
-   * Marshals a Request object into a byte array.
-   * Used by the client to convert Request objects into byte arrays for sending to the server.
+   * Marshals a Request object into a byte array. Used by the client to convert Request objects into
+   * byte arrays for sending to the server.
    *
    * @param request The Request object to marshal.
    * @return A byte array representing the marshalled Request.
@@ -25,6 +24,7 @@ public class Marshaller {
   public static byte[] marshal(Request request) {
     ByteBuffer buffer = ByteBuffer.allocate(1024); // Allocate more if needed
 
+    buffer.putLong(request.getRequestId());
     buffer.putInt(request.getOperationType().ordinal());
     buffer.putLong(request.getOffset());
     buffer.putLong(request.getMonitorDuration());
@@ -46,8 +46,8 @@ public class Marshaller {
   }
 
   /**
-   * Marshals a Response object into a byte array.
-   * Used by the server to convert Response objects into byte arrays for sending to the client.
+   * Marshals a Response object into a byte array. Used by the server to convert Response objects
+   * into byte arrays for sending to the client.
    *
    * @param response The Response object to marshal.
    * @return A byte array representing the marshalled Response.
