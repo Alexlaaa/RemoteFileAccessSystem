@@ -9,6 +9,7 @@ public class Request {
   private final long requestId; // Unique ID for the request
   private final Constants.OperationType operationType; // Defines the type of operation
   private final String filePath; // The file path on the server
+  private final long bytesToRead; // Number of bytes to read for read operations
   private final long offset; // Offset for read/write operations
   private final byte[] data; // Data to be written to the file for write operations
   private final long monitorDuration; // Duration for monitoring file updates for monitoring operations (in milliseconds)
@@ -18,12 +19,14 @@ public class Request {
    *
    * @param operationType The type of operation (READ).
    * @param filePath      The path of the file on the server.
+   * @param bytesToRead   The number of bytes to read from the file.
    * @param offset        The offset for the read operation (in bytes).
    */
   public Request(long requestId, Constants.OperationType operationType, String filePath,
+      long bytesToRead,
       long offset) {
-    this(requestId, operationType, filePath, offset, null,
-        0);  // Data and monitor duration are not applicable for read operations
+    this(requestId, operationType, filePath, bytesToRead, offset, null,
+        0);  // data and monitorDuration are not applicable for read operations
   }
 
   /**
@@ -36,8 +39,8 @@ public class Request {
    */
   public Request(long requestId, Constants.OperationType operationType, String filePath,
       long offset, byte[] data) {
-    this(requestId, operationType, filePath, offset, data,
-        0);  // Monitor duration is not applicable for write operations
+    this(requestId, operationType, filePath, 0, offset, data,
+        0);  // monitorDuration is not applicable for write operations
   }
 
   /**
@@ -51,17 +54,19 @@ public class Request {
   public Request(long requestId, Constants.OperationType operationType, String filePath,
       boolean isMonitor,
       long monitorDuration) {
-    this(requestId, operationType, filePath, 0, null,
-        monitorDuration); // Offset and data are not applicable for monitor operations
+    this(requestId, operationType, filePath, 0, 0, null,
+        monitorDuration); // bytesToRead, offset and data are not applicable for monitor operations
   }
 
   // Private constructor to handle all initializations
   private Request(long requestId, Constants.OperationType operationType, String filePath,
+      long bytesToRead,
       long offset, byte[] data,
       long monitorDuration) {
     this.requestId = requestId;
     this.operationType = operationType;
     this.filePath = filePath;
+    this.bytesToRead = bytesToRead;
     this.offset = offset;
     this.data = data;
     this.monitorDuration = monitorDuration;
@@ -80,6 +85,10 @@ public class Request {
 
   public String getFilePath() {
     return filePath;
+  }
+
+  public long getBytesToRead() {
+    return bytesToRead;
   }
 
   public long getOffset() {

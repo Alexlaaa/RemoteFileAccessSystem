@@ -26,6 +26,7 @@ public class Marshaller {
 
     buffer.putLong(request.getRequestId());
     buffer.putInt(request.getOperationType().ordinal());
+    buffer.putLong(request.getBytesToRead());
     buffer.putLong(request.getOffset());
     buffer.putLong(request.getMonitorDuration());
 

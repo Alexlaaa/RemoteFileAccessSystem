@@ -25,9 +25,10 @@ public class Unmarshaller {
     ByteBuffer buffer = ByteBuffer.wrap(
         data); // wrap the byte array in a ByteBuffer to provide a structured way to access the data
 
-    // Extract the requestId, operation type, offset, and monitor duration from the byte buffer.
+    // Extract the requestId, operation type, bytesToRead, offset, and monitor duration from the byte buffer.
     long requestId = buffer.getLong();
     Constants.OperationType operationType = Constants.OperationType.values()[buffer.getInt()]; // integer is used to access the corresponding OperationType enum value
+    long bytesToRead = buffer.getLong();
     long offset = buffer.getLong();
     long monitorDuration = buffer.getLong();
 
@@ -40,7 +41,7 @@ public class Unmarshaller {
     // Depending on the operation type, construct and return the appropriate Request object.
     switch (operationType) {
       case READ:
-        return new Request(requestId, operationType, filePath, offset);
+        return new Request(requestId, operationType, filePath, bytesToRead, offset);
       case WRITE:
         int dataSize = buffer.getInt();
         byte[] fileData = null;
