@@ -22,7 +22,7 @@ public class Marshaller {
    * @return A byte array representing the marshalled Request.
    */
   public static byte[] marshal(Request request) {
-    ByteBuffer buffer = ByteBuffer.allocate(1024); // Allocate more if needed
+    ByteBuffer buffer = ByteBuffer.allocate(1024);
 
     buffer.putLong(request.getRequestId());
     buffer.putInt(request.getOperationType().ordinal());
@@ -35,11 +35,11 @@ public class Marshaller {
     buffer.put(filePathBytes);
 
     if (request.getData() != null) {
-      // For WRITE operation, include data
+      // For WRITE_INSERT operation, include data
       buffer.putInt(request.getData().length);
       buffer.put(request.getData());
     } else {
-      // For READ and MONITOR, there's no data
+      // For READ, MONITOR, WRITE_DELETE, FILE_INFO operations, there's no data
       buffer.putInt(0);
     }
 
@@ -54,7 +54,7 @@ public class Marshaller {
    * @return A byte array representing the marshalled Response.
    */
   public static byte[] marshal(Response response) {
-    ByteBuffer buffer = ByteBuffer.allocate(1024); // Allocate more if needed
+    ByteBuffer buffer = ByteBuffer.allocate(1024);
 
     buffer.putInt(response.getStatusCode().getCode());
 

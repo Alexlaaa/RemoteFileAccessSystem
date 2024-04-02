@@ -38,7 +38,6 @@ public class Constants {
     READ_INCOMPLETE(102, "Read Incomplete"),
     WRITE_INSERT_SUCCESS(200, "Write Insert Success"),
     WRITE_INSERT_ERROR(201, "Write Insert Error"),
-    WRITE_INSERT_INCOMPLETE(202, "Write Incomplete"),
     MONITOR_SUCCESS(300, "Monitor Success"),
     MONITOR_ERROR(301, "Monitor Error"),
     WRITE_DELETE_SUCCESS(400, "Write Delete Success"),
