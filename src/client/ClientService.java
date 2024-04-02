@@ -45,7 +45,7 @@ public class ClientService {
    * @return The string representation of the read data or an error message.
    */
   public String handleReadRequest(String filePath, long bytesToRead, long offset) {
-    Request request = new Request(System.nanoTime(), Constants.OperationType.READ, filePath,
+    Request request = new Request(generateRequestId(), Constants.OperationType.READ, filePath,
         bytesToRead,
         offset);
     try {
@@ -66,7 +66,7 @@ public class ClientService {
    * @return Acknowledgement message or an error message.
    */
   public String handleWriteInsertRequest(String filePath, long offset, String data) {
-    Request request = new Request(System.nanoTime(), OperationType.WRITE_INSERT, filePath,
+    Request request = new Request(generateRequestId(), OperationType.WRITE_INSERT, filePath,
         offset, data.getBytes());
     try {
       Response response = clientNetwork.sendRequest(request);
@@ -84,7 +84,7 @@ public class ClientService {
    * @return A message indicating the status of the monitor request or an error message.
    */
   public String handleMonitorRequest(String filePath, long monitorDuration) {
-    Request request = new Request(System.nanoTime(), Constants.OperationType.MONITOR, filePath,
+    Request request = new Request(generateRequestId(), Constants.OperationType.MONITOR, filePath,
         monitorDuration);
     try {
       Response response = clientNetwork.sendRequest(request);
@@ -103,7 +103,7 @@ public class ClientService {
    * @return Acknowledgement message or an error message.
    */
   public String handleWriteDeleteRequest(String filePath, long bytesToDelete, long offset) {
-    Request request = new Request(System.nanoTime(), OperationType.WRITE_DELETE,
+    Request request = new Request(generateRequestId(), OperationType.WRITE_DELETE,
         filePath, bytesToDelete, offset, true);
     try {
       Response response = clientNetwork.sendRequest(request);
@@ -120,7 +120,7 @@ public class ClientService {
    * @return A string containing the file information or an error message.
    */
   public String handleFileInfoRequest(String filePath) {
-    Request request = new Request(System.nanoTime(), Constants.OperationType.FILE_INFO, filePath);
+    Request request = new Request(generateRequestId(), Constants.OperationType.FILE_INFO, filePath);
     try {
       Response response = clientNetwork.sendRequest(request);
       return new String(response.getData());

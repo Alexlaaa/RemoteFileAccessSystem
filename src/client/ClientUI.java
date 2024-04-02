@@ -182,7 +182,7 @@ public class ClientUI {
   }
 
   /**
-   * Prompts the user for a non-empty string with a specific message.
+   * Prompts the user for a non-empty string with a specific message and validates the input.
    *
    * @param message The message to display to the user.
    * @return The non-empty string inputted by the user.
