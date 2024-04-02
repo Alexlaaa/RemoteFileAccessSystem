@@ -1,6 +1,7 @@
 package common;
 
 public class Response {
+
   private final Constants.StatusCode statusCode; // The status code indicating success or failure
   private final byte[] data; // The data returned by the server, if any
   private final String message; // Additional message or information about the operation
@@ -9,7 +10,8 @@ public class Response {
    * Constructs a Response object.
    *
    * @param statusCode The status code indicating the result of the operation.
-   * @param data       The data returned from the server, if any. For read operations, this would be the file data.
+   * @param data       The data returned from the server, if any. For read operations, this would be
+   *                   the file data.
    * @param message    Additional information or message about the operation or its result.
    */
   public Response(Constants.StatusCode statusCode, byte[] data, String message) {
@@ -43,5 +45,15 @@ public class Response {
    */
   public String getMessage() {
     return message;
+  }
+
+  // toString() method for sanity check
+  @Override
+  public String toString() {
+    return "Response{" +
+        "statusCode=" + statusCode +
+        ", data=" + (data == null ? "null" : data.length + " bytes") +
+        ", message='" + message + '\'' +
+        '}';
   }
 }

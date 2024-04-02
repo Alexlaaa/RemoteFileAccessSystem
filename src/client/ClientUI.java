@@ -61,7 +61,7 @@ public class ClientUI {
             : Constants.NetworkStrategyType.AT_MOST_ONCE;
 
     // Initialize ClientUDP
-    ClientUDP clientUDP = new ClientUDP(serverAddress, serverPort, 1000, 1,
+    ClientUDP clientUDP = new ClientUDP(serverAddress, serverPort, 10000, 1,
         1);
     // Initialize ClientNetwork with the selected strategy
     ClientNetwork clientNetwork = new ClientNetwork(clientUDP, selectedStrategy);

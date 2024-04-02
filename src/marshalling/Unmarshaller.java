@@ -4,6 +4,7 @@ import common.Constants;
 import common.Request;
 import common.Response;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 
 /**
  * Handles the unmarshalling of data from byte arrays to Request and Response objects.
@@ -65,26 +66,67 @@ public class Unmarshaller {
    * @return The unmarshalled Response object.
    */
   public static Response unmarshalResponse(byte[] data) {
-    ByteBuffer buffer = ByteBuffer.wrap(
-        data); // wrap the byte array in a ByteBuffer to provide a structured way to access the data
+    // Wrap the byte array data in a ByteBuffer for structured access
+    ByteBuffer buffer = ByteBuffer.wrap(data);
 
-    // Extract the status code from the byte buffer.
-    Constants.StatusCode statusCode = Constants.StatusCode.values()[buffer.getInt()]; // integer is used to access the corresponding StatusCode enum value
-
-    // Extract the file data from the byte buffer.
-    int dataSize = buffer.getInt(); // read the length of the file data
-    byte[] fileData = null;
-    if (dataSize > 0) { // if there is file data, read it from the buffer
-      fileData = new byte[dataSize]; // create a byte array to store the file data
-      buffer.get(fileData); // read the file data bytes from the buffer
+    // Check if there's enough data to read the status code
+    if (buffer.remaining() < Integer.BYTES) {
+      return new Response(Constants.StatusCode.GENERAL_ERROR, null,
+          "Incomplete data: Unable to extract status code.");
     }
 
-    // Extract the message from the byte buffer.
-    int messageLength = buffer.getInt(); // read the length of the message
-    byte[] messageBytes = new byte[messageLength]; // create a byte array to store the message
-    buffer.get(messageBytes); // read the message bytes from the buffer
-    String message = new String(messageBytes); // convert the message bytes to a string
+    // Read the status code value from the buffer
+    int statusCodeValue = buffer.getInt();
 
-    return new Response(statusCode, fileData, message); // construct and return the Response object
+    // Convert the integer status code value to the StatusCode enum
+    Constants.StatusCode statusCode = Arrays.stream(Constants.StatusCode.values())
+        .filter(sc -> sc.getCode() == statusCodeValue)
+        .findFirst()
+        .orElse(Constants.StatusCode.GENERAL_ERROR);
+
+    // Check if there's enough data to read the size of the data part
+    if (buffer.remaining() < Integer.BYTES) {
+      return new Response(statusCode, null, "Incomplete data: Unable to extract data size.");
+    }
+
+    // Read the data size
+    int dataSize = buffer.getInt();
+
+    // Prepare a byte array to hold the data part
+    byte[] fileData = new byte[dataSize];
+
+    // Check if there's enough data to read the file data
+    if (buffer.remaining() < dataSize) {
+      return new Response(statusCode, null, "Incomplete data: Insufficient file data.");
+    }
+
+    // Read the file data into the byte array
+    buffer.get(fileData);
+
+    // Check if there's enough data to read the size of the message part
+    if (buffer.remaining() < Integer.BYTES) {
+      return new Response(statusCode, fileData,
+          "Incomplete data: Unable to extract message length.");
+    }
+
+    // Read the message size
+    int messageLength = buffer.getInt();
+
+    // Prepare a byte array to hold the message part
+    byte[] messageBytes = new byte[messageLength];
+
+    // Check if there's enough data to read the message data
+    if (buffer.remaining() < messageLength) {
+      return new Response(statusCode, fileData, "Incomplete data: Insufficient message data.");
+    }
+
+    // Read the message data into the byte array
+    buffer.get(messageBytes);
+
+    // Convert the message byte array to a string
+    String message = new String(messageBytes);
+
+    // Return the constructed Response object
+    return new Response(statusCode, fileData, message);
   }
 }

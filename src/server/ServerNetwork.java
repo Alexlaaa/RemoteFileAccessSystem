@@ -4,13 +4,13 @@ import common.Constants;
 import common.Request;
 import common.Response;
 import java.io.IOException;
-import marshalling.Unmarshaller;
 import marshalling.Marshaller;
+import marshalling.Unmarshaller;
 
 /**
- * ServerNetwork acts as an intermediary between the network layer (ServerUDP)
- * and the service layer (ServerService), handling the transformation of data
- * and invocation of the appropriate service methods.
+ * ServerNetwork acts as an intermediary between the network layer (ServerUDP) and the service layer
+ * (ServerService), handling the transformation of data and invocation of the appropriate service
+ * methods.
  */
 public class ServerNetwork {
 
@@ -26,7 +26,8 @@ public class ServerNetwork {
   }
 
   /**
-   * Processes the received request, invokes the appropriate service method, and prepares the response.
+   * Processes the received request, invokes the appropriate service method, and prepares the
+   * response.
    *
    * @param data The received byte array.
    * @return The byte array to be sent as a response.
@@ -38,7 +39,13 @@ public class ServerNetwork {
     if (request.getOperationType() == Constants.OperationType.SHUTDOWN_SERVER) {
       response = new Response(Constants.StatusCode.SHUTDOWN, null, "Server will shutdown");
     } else {
+      System.out.println(
+          "In ServerNetwork: Calling serverService.processRequest() with Request object:\n"
+              + request.toString());
       response = serverService.processRequest(request);
+      System.out.println(
+          "In ServerNetwork: Returning response object from serverService.processRequest():\n"
+              + response.toString());
     }
 
     return Marshaller.marshal(response);

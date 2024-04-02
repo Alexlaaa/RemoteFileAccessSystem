@@ -52,6 +52,8 @@ public class ClientNetwork {
    * @throws IOException if network communication fails.
    */
   public Response sendRequest(Request request) throws IOException {
+    System.out.println(
+        "In ClientNetwork: Sending request object to server:\n" + request.toString());
     byte[] requestData = Marshaller.marshal(request);
     byte[] responseData = networkStrategy.sendAndReceive(requestData);
     if (responseData == null || responseData.length == 0) {

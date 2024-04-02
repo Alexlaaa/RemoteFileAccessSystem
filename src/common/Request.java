@@ -102,4 +102,18 @@ public class Request {
   public long getMonitorDuration() {
     return monitorDuration;
   }
+
+  // toString() method for sanity check
+  @Override
+  public String toString() {
+    return "Request{" +
+        "requestId=" + requestId +
+        ", operationType=" + operationType +
+        ", filePath='" + filePath + '\'' +
+        ", bytesToRead=" + bytesToRead +
+        ", offset=" + offset +
+        ", data=" + (data == null ? "null" : new String(data)) +
+        ", monitorDuration=" + monitorDuration +
+        '}';
+  }
 }
