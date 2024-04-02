@@ -2,6 +2,7 @@ package client;
 
 import common.Constants;
 import java.io.IOException;
+import java.util.InputMismatchException;
 import java.util.Scanner;
 
 /**
@@ -40,11 +41,9 @@ public class ClientUI {
    * Sets up the server configuration based on user input.
    */
   private void setServerConfig() {
-    System.out.println("Enter server address:");
-    serverAddress = scanner.nextLine();
-    System.out.println("Enter server port:");
-    serverPort = scanner.nextInt();
-    scanner.nextLine();  // Consume newline
+    serverAddress = promptForNonEmptyString(
+        "Enter server address:");
+    serverPort = (int) promptForLong("Enter server port:");
   }
 
   /**
@@ -53,16 +52,19 @@ public class ClientUI {
    * @throws IOException If an I/O error occurs during network setup.
    */
   private void setupNetworkStrategy() throws IOException {
-    System.out.println("Select Invocation Type:\n1. At Least Once\n2. At Most Once");
-    int strategyChoice = scanner.nextInt();
-    scanner.nextLine();  // Consume newline left-over
+    int strategyChoice = (int) promptForLong(
+        "Select Invocation Type:\n1. At Least Once\n2. At Most Once");
+    while (strategyChoice != 1 && strategyChoice != 2) {
+      strategyChoice = (int) promptForLong(
+          "Invalid choice. Select Invocation Type:\n1. At Least Once\n2. At Most Once");
+    }
+
     Constants.NetworkStrategyType selectedStrategy =
-        (strategyChoice == 1) ? Constants.NetworkStrategyType.AT_LEAST_ONCE
+        strategyChoice == 1 ? Constants.NetworkStrategyType.AT_LEAST_ONCE
             : Constants.NetworkStrategyType.AT_MOST_ONCE;
 
     // Initialize ClientUDP
-    ClientUDP clientUDP = new ClientUDP(serverAddress, serverPort, 10000, 1,
-        1);
+    ClientUDP clientUDP = new ClientUDP(serverAddress, serverPort, 10000, 1, 1);
     // Initialize ClientNetwork with the selected strategy
     ClientNetwork clientNetwork = new ClientNetwork(clientUDP, selectedStrategy);
     clientService.setClientNetwork(clientNetwork);
@@ -102,14 +104,9 @@ public class ClientUI {
    * Handles the read file command from the user.
    */
   private void handleReadFile() {
-    System.out.println("Enter file path:");
-    String filePath = scanner.nextLine();
-    System.out.println("Enter offset:");
-    long offset = scanner.nextLong();
-    scanner.nextLine();  // Consume newline
-    System.out.println("Enter number of bytes to read:");
-    long bytesToRead = scanner.nextLong();
-    scanner.nextLine(); // Consume newline
+    String filePath = promptForNonEmptyString("Enter file path:");
+    long offset = promptForLong("Enter offset:");
+    long bytesToRead = promptForLong("Enter number of bytes to read:");
     String readResult = clientService.handleReadRequest(filePath, bytesToRead, offset);
     System.out.println(readResult.isEmpty() ? "Error reading file." : "Read Result: " + readResult);
   }
@@ -118,13 +115,10 @@ public class ClientUI {
    * Handles the write insert file command from the user.
    */
   private void handleWriteInsertFile() {
-    System.out.println("Enter file path:");
-    String filePath = scanner.nextLine();
-    System.out.println("Enter offset:");
-    long offset = scanner.nextLong();
-    scanner.nextLine(); // Consume newline
+    String filePath = promptForNonEmptyString("Enter file path:");
+    long offset = promptForLong("Enter offset:");
     System.out.println("Enter data to write:");
-    String data = scanner.nextLine();
+    String data = scanner.nextLine();  // Data can include any character, so no validation needed.
     String writeInsertResult = clientService.handleWriteInsertRequest(filePath, offset, data);
     System.out.println(writeInsertResult.isEmpty() ? "Error writing content in file."
         : "Write Content In File Result: " + writeInsertResult);
@@ -134,41 +128,74 @@ public class ClientUI {
    * Handles the monitor file command from the user.
    */
   private void handleMonitorFile() {
-    System.out.println("Enter file path:");
-    String filePath = scanner.nextLine();
-    System.out.println("Enter monitor duration (in milliseconds):");
-    long monitorDuration = scanner.nextLong();
-    scanner.nextLine(); // Consume newline
+    String filePath = promptForNonEmptyString("Enter file path:");
+    long monitorDuration = promptForLong("Enter monitor duration (in milliseconds):");
     String monitorResult = clientService.handleMonitorRequest(filePath, monitorDuration);
     System.out.println(monitorResult.isEmpty() ? "Error monitoring file."
         : "Monitor File Result: " + monitorResult);
   }
 
+
   /**
    * Handles the write delete content command from the user.
    */
   private void handleWriteDeleteContent() {
-    System.out.println("Enter file path:");
-    String filePath = scanner.nextLine();
-    System.out.println("Enter offset:");
-    long offset = scanner.nextLong();
-    System.out.println("Enter number of bytes to delete:");
-    long bytesToDelete = scanner.nextLong();
-    scanner.nextLine();  // Consume newline
+    String filePath = promptForNonEmptyString("Enter file path:");
+    long offset = promptForLong("Enter offset:");
+    long bytesToDelete = promptForLong("Enter number of bytes to delete:");
     String writeDeleteResult = clientService.handleWriteDeleteRequest(filePath, bytesToDelete,
         offset);
     System.out.println(writeDeleteResult.isEmpty() ? "Error deleting content in file."
         : "Delete Content In File Result: " + writeDeleteResult);
   }
 
+
   /**
    * Handles the file info command from the user.
    */
+
   private void handleFileInfo() {
-    System.out.println("Enter file path:");
-    String filePath = scanner.nextLine();
+    String filePath = promptForNonEmptyString("Enter file path:");
     String infoResult = clientService.handleFileInfoRequest(filePath);
-    System.out.println(infoResult.isEmpty() ? "Error reading file info."
-        : "== File Info ==\n" + infoResult);
+    System.out.println(
+        infoResult.isEmpty() ? "Error reading file info." : "== File Info ==\n" + infoResult);
+  }
+
+  /**
+   * Prompts the user for a long value with a specific message and validates the input.
+   *
+   * @param message The message to display to the user.
+   * @return The validated long value inputted by the user.
+   */
+  private long promptForLong(String message) {
+    while (true) {
+      try {
+        System.out.println(message);
+        long value = scanner.nextLong();
+        scanner.nextLine(); // Consume newline
+        return value;
+      } catch (InputMismatchException e) {
+        System.out.println("Invalid input. Please enter a numerical value.");
+        scanner.nextLine(); // Consume the invalid input
+      }
+    }
+  }
+
+  /**
+   * Prompts the user for a non-empty string with a specific message.
+   *
+   * @param message The message to display to the user.
+   * @return The non-empty string inputted by the user.
+   */
+  private String promptForNonEmptyString(String message) {
+    String input;
+    do {
+      System.out.println(message);
+      input = scanner.nextLine().trim();
+      if (input.isEmpty()) {
+        System.out.println("Input cannot be empty. Please try again.");
+      }
+    } while (input.isEmpty());
+    return input;
   }
 }
