@@ -41,11 +41,11 @@ public class ServerNetwork {
     } else {
       System.out.println(
           "In ServerNetwork: Received request from client:\n"
-              + request.toString());
+              + request.toString() + "\n");
       response = serverService.processRequest(request);
       System.out.println(
           "In ServerNetwork: Sending response to client:\n"
-              + response.toString());
+              + response.toString() + "\n");
     }
 
     return Marshaller.marshal(response);

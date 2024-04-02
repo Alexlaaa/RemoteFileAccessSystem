@@ -6,6 +6,7 @@ import common.Response;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
 
 /**
@@ -22,21 +23,16 @@ public class ServerService {
    * @return A response object that contains the result of the operation.
    */
   public Response processRequest(Request request) {
-    switch (request.getOperationType()) {
-      case READ:
-        return handleReadRequest(request);
-      case WRITE_INSERT:
-        return handleWriteInsertRequest(request);
-      case MONITOR:
+    return switch (request.getOperationType()) {
+      case READ -> handleReadRequest(request);
+      case WRITE_INSERT -> handleWriteInsertRequest(request);
+      case MONITOR ->
         // Monitoring logic will be implemented separately.
-        return handleMonitorRequest(request);
-      case WRITE_DELETE:
-        return handleWriteDeleteRequest(request);
-      case FILE_INFO:
-        return handleFileInfoRequest(request);
-      default:
-        return new Response(StatusCode.INVALID_OPERATION, null, "Invalid operation type.");
-    }
+          handleMonitorRequest(request);
+      case WRITE_DELETE -> handleWriteDeleteRequest(request);
+      case FILE_INFO -> handleFileInfoRequest(request);
+      default -> new Response(StatusCode.INVALID_OPERATION, null, "Invalid operation type.");
+    };
   }
 
   /**
@@ -47,25 +43,33 @@ public class ServerService {
    * @return A response object containing the read data or an error message.
    */
   private Response handleReadRequest(Request request) {
-    try (RandomAccessFile file = new RandomAccessFile(request.getFilePath(), "r")) {
+    try (RandomAccessFile sourceFile = new RandomAccessFile(request.getFilePath(), "r")) {
+      if (request.getOffset() >= sourceFile.length()) {
+        return new Response(StatusCode.READ_ERROR, null,
+            "Offset is beyond the file length.");
+      }
+
       // Sets the file pointer to the specified offset, determining where to start reading the file
-      file.seek(request.getOffset());
+      sourceFile.seek(request.getOffset());
 
       // Creates a byte array to store the read data
       byte[] data = new byte[(int) request.getBytesToReadOrDelete()];
 
       // Stores the number of bytes read from the file
-      int bytesRead = file.read(data);
+      int bytesRead = sourceFile.read(data);
 
       // Check for possibility of incomplete operation due to reaching EOF before reading expected number of bytes
       if (bytesRead != request.getBytesToReadOrDelete()) {
+        String message = "Read partially successful // File Length -> " + sourceFile.length();
         return new Response(StatusCode.READ_INCOMPLETE, Arrays.copyOf(data, bytesRead),
-            "Read partially successful.");
+            message);
       }
 
+      // Include the file length in the response message
+      String message = "Read successful // File Length -> " + sourceFile.length();
       // Read operation was successful
       return new Response(StatusCode.READ_SUCCESS, data,
-          "Read successful.");
+          message);
     } catch (IOException e) {
       return new Response(StatusCode.READ_ERROR, null,
           "Error reading file: " + e.getMessage());
@@ -82,11 +86,6 @@ public class ServerService {
     try (RandomAccessFile sourceFile = new RandomAccessFile(request.getFilePath(), "rw")) {
       long offset = request.getOffset(); // The offset at which to start writing the data
       byte[] data = request.getData(); // The data to be written to the file
-
-      // Checks if the offset exceeds the file size
-      if (offset > sourceFile.length()) {
-        return new Response(StatusCode.WRITE_INSERT_ERROR, null, "Offset exceeds file size.");
-      }
 
       // Idea: To read the content after the offset and stores it temporarily to avoid overwriting during data insertion
 
@@ -125,7 +124,10 @@ public class ServerService {
       if (tempFile.exists()) {
         tempFile.delete();
       }
-      return new Response(StatusCode.WRITE_INSERT_SUCCESS, null, "Write successful.");
+
+      // Include the updated file length in the response message
+      String message = "Write successful // Updated File Length -> " + sourceFile.length();
+      return new Response(StatusCode.WRITE_INSERT_SUCCESS, null, message);
     } catch (IOException e) {
       return new Response(StatusCode.WRITE_INSERT_ERROR, null,
           "Error writing to file: " + e.getMessage());
@@ -152,8 +154,8 @@ public class ServerService {
    */
   private Response handleWriteDeleteRequest(Request request) {
     try (RandomAccessFile sourceFile = new RandomAccessFile(request.getFilePath(), "rw")) {
+      // Cannot delete beyond the file size
       if (request.getOffset() + request.getBytesToReadOrDelete() > sourceFile.length()) {
-        // Cannot delete beyond the file size
         return new Response(StatusCode.WRITE_DELETE_ERROR, null, "Cannot delete beyond EOF.");
       }
 
@@ -181,7 +183,9 @@ public class ServerService {
       // Write the remaining content back to the file
       sourceFile.write(remaining);
 
-      return new Response(StatusCode.WRITE_DELETE_SUCCESS, null, "Content deleted successfully.");
+      // Include the updated file length in the response message
+      String message = "Delete successful // Updated File Length -> " + sourceFile.length();
+      return new Response(StatusCode.WRITE_DELETE_SUCCESS, null, message);
     } catch (IOException e) {
       return new Response(StatusCode.WRITE_DELETE_ERROR, null,
           "Error deleting content: " + e.getMessage());
@@ -202,18 +206,22 @@ public class ServerService {
       return new Response(StatusCode.FILE_INFO_ERROR, null, "File does not exist.");
     }
 
+    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    String lastModifiedReadable = sdf.format(new java.util.Date(file.lastModified()));
+
     // Constructing JSON-like structure for various file properties to be returned
-    String fileInfo = "{" +
-        "name:" + file.getName() + "," +
-        "size:" + file.length() + "," +
-        "lastModified:" + file.lastModified() + "," +
-        "readable:" + file.canRead() + "," +
-        "writable:" + file.canWrite() + "," +
-        "executable:" + file.canExecute() + "," +
-        "hidden:" + file.isHidden() + "," +
-        "absolutePath:" + file.getAbsolutePath() + "," +
-        "parent:" + file.getParent() +
+    String fileInfo = "{\n" +
+        "name: " + file.getName() + ",\n" +
+        "size: " + file.length() + " bytes,\n" +
+        "lastModified: " + lastModifiedReadable + ",\n" +
+        "readable: " + file.canRead() + ",\n" +
+        "writable: " + file.canWrite() + ",\n" +
+        "executable: " + file.canExecute() + ",\n" +
+        "hidden: " + file.isHidden() + ",\n" +
+        "absolutePath: " + file.getAbsolutePath() + ",\n" +
+        "parent: " + file.getParent() + "\n" +
         "}";
+
     return new Response(StatusCode.FILE_INFO_SUCCESS, fileInfo.getBytes(),
         "File info retrieved successfully.");
   }

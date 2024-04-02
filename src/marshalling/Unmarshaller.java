@@ -29,7 +29,7 @@ public class Unmarshaller {
     // Extract the requestId, operation type, bytesToRead, offset, and monitor duration from the byte buffer.
     long requestId = buffer.getLong();
     Constants.OperationType operationType = Constants.OperationType.values()[buffer.getInt()]; // integer is used to access the corresponding OperationType enum value
-    long bytesToRead = buffer.getLong();
+    long bytesToReadOrDelete = buffer.getLong();
     long offset = buffer.getLong();
     long monitorDuration = buffer.getLong();
 
@@ -42,7 +42,7 @@ public class Unmarshaller {
     // Depending on the operation type, construct and return the appropriate Request object.
     switch (operationType) {
       case READ:
-        return new Request(requestId, operationType, filePath, bytesToRead, offset);
+        return new Request(requestId, operationType, filePath, bytesToReadOrDelete, offset);
       case WRITE_INSERT:
         int dataSize = buffer.getInt();
         byte[] fileData = null;
@@ -53,6 +53,10 @@ public class Unmarshaller {
         return new Request(requestId, operationType, filePath, offset, fileData);
       case MONITOR:
         return new Request(requestId, operationType, filePath, monitorDuration);
+      case WRITE_DELETE:
+        return new Request(requestId, operationType, filePath, bytesToReadOrDelete, offset, true);
+      case FILE_INFO:
+        return new Request(requestId, operationType, filePath);
       default:
         throw new IllegalArgumentException("Unrecognized operation type for unmarshalling Request");
     }

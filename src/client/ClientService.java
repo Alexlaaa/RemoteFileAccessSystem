@@ -46,7 +46,8 @@ public class ClientService {
         offset);
     try {
       Response response = clientNetwork.sendRequest(request);
-      return new String(response.getData()); // Return the response for the UI to display
+      return new String(response.getData()) + "\n"
+          + response.getMessage(); // Return the response for the UI to display
     } catch (IOException e) {
       return "Error sending read request: " + e.getMessage();
     }

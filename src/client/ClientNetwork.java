@@ -54,7 +54,7 @@ public class ClientNetwork {
    */
   public Response sendRequest(Request request) throws IOException {
     System.out.println(
-        "In ClientNetwork: Sending request to server:\n" + request.toString());
+        "In ClientNetwork: Sending request to server:\n" + request.toString() + "\n");
     byte[] requestData = Marshaller.marshal(request);
     byte[] responseData = networkStrategy.sendAndReceive(requestData);
     if (responseData == null || responseData.length == 0) {
@@ -64,7 +64,7 @@ public class ClientNetwork {
     }
     Response response = Unmarshaller.unmarshalResponse(responseData);
     System.out.println(
-        "In ClientNetwork: Received response from server:\n" + response.toString());
+        "In ClientNetwork: Received response from server:\n" + response.toString() + "\n");
     return response;
   }
 }

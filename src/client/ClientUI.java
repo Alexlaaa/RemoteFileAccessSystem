@@ -83,31 +83,17 @@ public class ClientUI {
       scanner.nextLine();  // Consume newline
 
       switch (command) {
-        case 1:
-          handleReadFile();
-          break;
-        case 2:
-          handleWriteInsertFile();
-          break;
-        case 3:
-          handleMonitorFile();
-          break;
-        case 4:
-          handleWriteDeleteContent();
-          break;
-        case 5:
-          handleFileInfo();
-          break;
-        case 6:
-          // Change network strategy
-          setupNetworkStrategy();
-          break;
-        case 7:
+        case 1 -> handleReadFile();
+        case 2 -> handleWriteInsertFile();
+        case 3 -> handleMonitorFile();
+        case 4 -> handleWriteDeleteContent();
+        case 5 -> handleFileInfo();
+        case 6 -> setupNetworkStrategy(); // Change network strategy
+        case 7 -> {
           System.out.println("Exiting...");
           return;
-        default:
-          System.out.println("Invalid command.");
-          break;
+        }
+        default -> System.out.println("Invalid command.");
       }
     }
   }
@@ -125,7 +111,7 @@ public class ClientUI {
     long bytesToRead = scanner.nextLong();
     scanner.nextLine(); // Consume newline
     String readResult = clientService.handleReadRequest(filePath, bytesToRead, offset);
-    System.out.println("Read result: " + readResult);
+    System.out.println(readResult.isEmpty() ? "Error reading file." : "Read Result: " + readResult);
   }
 
   /**
@@ -140,7 +126,8 @@ public class ClientUI {
     System.out.println("Enter data to write:");
     String data = scanner.nextLine();
     String writeInsertResult = clientService.handleWriteInsertRequest(filePath, offset, data);
-    System.out.println("Write result: " + writeInsertResult);
+    System.out.println(writeInsertResult.isEmpty() ? "Error writing content in file."
+        : "Write Content In File Result: " + writeInsertResult);
   }
 
   /**
@@ -153,7 +140,8 @@ public class ClientUI {
     long monitorDuration = scanner.nextLong();
     scanner.nextLine(); // Consume newline
     String monitorResult = clientService.handleMonitorRequest(filePath, monitorDuration);
-    System.out.println("Monitor result: " + monitorResult);
+    System.out.println(monitorResult.isEmpty() ? "Error monitoring file."
+        : "Monitor File Result: " + monitorResult);
   }
 
   /**
@@ -169,7 +157,8 @@ public class ClientUI {
     scanner.nextLine();  // Consume newline
     String writeDeleteResult = clientService.handleWriteDeleteRequest(filePath, bytesToDelete,
         offset);
-    System.out.println("Delete result: " + writeDeleteResult);
+    System.out.println(writeDeleteResult.isEmpty() ? "Error deleting content in file."
+        : "Delete Content In File Result: " + writeDeleteResult);
   }
 
   /**
@@ -179,6 +168,7 @@ public class ClientUI {
     System.out.println("Enter file path:");
     String filePath = scanner.nextLine();
     String infoResult = clientService.handleFileInfoRequest(filePath);
-    System.out.println("File info: " + infoResult);
+    System.out.println(infoResult.isEmpty() ? "Error reading file info."
+        : "== File Info ==\n" + infoResult);
   }
 }
