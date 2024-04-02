@@ -78,25 +78,31 @@ public class ClientUI {
 
     while (true) {
       System.out.println(
-          "Enter command:\n1. Read File\n2. Write File\n3. Monitor File\n4. Change Network Strategy\n5. Exit");
+          "Enter command:\n1. Read File Content\n2. Write Content in File\n3. Monitor File\n4. Delete Content in File\n5. Read File Info\n6. Change Network Strategy\n7. Exit");
       int command = scanner.nextInt();
       scanner.nextLine();  // Consume newline
 
-      switch (command) { // TODO: Add cases for the 2 additional operations
+      switch (command) {
         case 1:
           handleReadFile();
           break;
         case 2:
-          handleWriteFile();
+          handleWriteInsertFile();
           break;
         case 3:
           handleMonitorFile();
           break;
         case 4:
+          handleWriteDeleteContent();
+          break;
+        case 5:
+          handleFileInfo();
+          break;
+        case 6:
           // Change network strategy
           setupNetworkStrategy();
           break;
-        case 5:
+        case 7:
           System.out.println("Exiting...");
           return;
         default:
@@ -112,20 +118,20 @@ public class ClientUI {
   private void handleReadFile() {
     System.out.println("Enter file path:");
     String filePath = scanner.nextLine();
-    System.out.println("Enter number of bytes to read:");
-    long bytesToRead = scanner.nextLong();
-    scanner.nextLine(); // Consume newline
     System.out.println("Enter offset:");
     long offset = scanner.nextLong();
     scanner.nextLine();  // Consume newline
+    System.out.println("Enter number of bytes to read:");
+    long bytesToRead = scanner.nextLong();
+    scanner.nextLine(); // Consume newline
     String readResult = clientService.handleReadRequest(filePath, bytesToRead, offset);
     System.out.println("Read result: " + readResult);
   }
 
   /**
-   * Handles the write file command from the user.
+   * Handles the write insert file command from the user.
    */
-  private void handleWriteFile() {
+  private void handleWriteInsertFile() {
     System.out.println("Enter file path:");
     String filePath = scanner.nextLine();
     System.out.println("Enter offset:");
@@ -133,8 +139,8 @@ public class ClientUI {
     scanner.nextLine(); // Consume newline
     System.out.println("Enter data to write:");
     String data = scanner.nextLine();
-    String writeResult = clientService.handleWriteRequest(filePath, offset, data);
-    System.out.println("Write result: " + writeResult);
+    String writeInsertResult = clientService.handleWriteInsertRequest(filePath, offset, data);
+    System.out.println("Write result: " + writeInsertResult);
   }
 
   /**
@@ -150,5 +156,29 @@ public class ClientUI {
     System.out.println("Monitor result: " + monitorResult);
   }
 
-  // TODO: Implement methods for the 2 additional operations
+  /**
+   * Handles the write delete content command from the user.
+   */
+  private void handleWriteDeleteContent() {
+    System.out.println("Enter file path:");
+    String filePath = scanner.nextLine();
+    System.out.println("Enter offset:");
+    long offset = scanner.nextLong();
+    System.out.println("Enter number of bytes to delete:");
+    long bytesToDelete = scanner.nextLong();
+    scanner.nextLine();  // Consume newline
+    String writeDeleteResult = clientService.handleWriteDeleteRequest(filePath, bytesToDelete,
+        offset);
+    System.out.println("Delete result: " + writeDeleteResult);
+  }
+
+  /**
+   * Handles the file info command from the user.
+   */
+  private void handleFileInfo() {
+    System.out.println("Enter file path:");
+    String filePath = scanner.nextLine();
+    String infoResult = clientService.handleFileInfoRequest(filePath);
+    System.out.println("File info: " + infoResult);
+  }
 }

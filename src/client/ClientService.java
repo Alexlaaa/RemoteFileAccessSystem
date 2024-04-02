@@ -1,6 +1,7 @@
 package client;
 
 import common.Constants;
+import common.Constants.OperationType;
 import common.Request;
 import common.Response;
 import java.io.IOException;
@@ -59,14 +60,14 @@ public class ClientService {
    * @param data     The data to write to the file.
    * @return Acknowledgement message or an error message.
    */
-  public String handleWriteRequest(String filePath, long offset, String data) {
-    Request request = new Request(System.nanoTime(), Constants.OperationType.WRITE, filePath,
+  public String handleWriteInsertRequest(String filePath, long offset, String data) {
+    Request request = new Request(System.nanoTime(), OperationType.WRITE_INSERT, filePath,
         offset, data.getBytes());
     try {
       Response response = clientNetwork.sendRequest(request);
       return response.getMessage(); // Return the server's response message
     } catch (IOException e) {
-      return "Error sending write request: " + e.getMessage();
+      return "Error sending write insert request: " + e.getMessage();
     }
   }
 
@@ -79,7 +80,7 @@ public class ClientService {
    */
   public String handleMonitorRequest(String filePath, long monitorDuration) {
     Request request = new Request(System.nanoTime(), Constants.OperationType.MONITOR, filePath,
-        true, monitorDuration);
+        monitorDuration);
     try {
       Response response = clientNetwork.sendRequest(request);
       return response.getMessage(); // Return the server's response message
@@ -88,7 +89,40 @@ public class ClientService {
     }
   }
 
-  // TODO: Add methods for the 2 additional operations
+  /**
+   * Handles a request to delete data from a file on the server.
+   *
+   * @param filePath      The path of the file from which data needs to be deleted.
+   * @param bytesToDelete The number of bytes to delete from the file.
+   * @param offset        The offset from where to start deleting the data in the file.
+   * @return Acknowledgement message or an error message.
+   */
+  public String handleWriteDeleteRequest(String filePath, long bytesToDelete, long offset) {
+    Request request = new Request(System.nanoTime(), OperationType.WRITE_DELETE,
+        filePath, bytesToDelete, offset, true);
+    try {
+      Response response = clientNetwork.sendRequest(request);
+      return response.getMessage();
+    } catch (IOException e) {
+      return "Error sending write delete request: " + e.getMessage();
+    }
+  }
+
+  /**
+   * Handles a request to fetch information about a file on the server.
+   *
+   * @param filePath The path of the file for which to fetch information.
+   * @return A string containing the file information or an error message.
+   */
+  public String handleFileInfoRequest(String filePath) {
+    Request request = new Request(System.nanoTime(), Constants.OperationType.FILE_INFO, filePath);
+    try {
+      Response response = clientNetwork.sendRequest(request);
+      return new String(response.getData());
+    } catch (IOException e) {
+      return "Error fetching file info: " + e.getMessage();
+    }
+  }
 
 }
 

@@ -1,5 +1,6 @@
 package client;
 
+import common.Constants;
 import common.Constants.NetworkStrategyType;
 import common.Request;
 import common.Response;
@@ -34,7 +35,7 @@ public class ClientNetwork {
   public void setStrategy(NetworkStrategyType strategyType) {
     switch (strategyType) {
       case AT_LEAST_ONCE:
-        this.networkStrategy = new AtLeastOnceStrategy(this.clientUDP, 3); // Example retry count
+        this.networkStrategy = new AtLeastOnceStrategy(this.clientUDP, 10);
         break;
       case AT_MOST_ONCE:
         this.networkStrategy = new AtMostOnceStrategy(this.clientUDP);
@@ -53,14 +54,17 @@ public class ClientNetwork {
    */
   public Response sendRequest(Request request) throws IOException {
     System.out.println(
-        "In ClientNetwork: Sending request object to server:\n" + request.toString());
+        "In ClientNetwork: Sending request to server:\n" + request.toString());
     byte[] requestData = Marshaller.marshal(request);
     byte[] responseData = networkStrategy.sendAndReceive(requestData);
     if (responseData == null || responseData.length == 0) {
       // Handle the case where no response is received
-      return new Response(null, new byte[0],
-          "No response received"); // TODO: Define a proper statusCode
+      return new Response(Constants.StatusCode.GENERAL_ERROR, null,
+          "No response received"); // TODO: Handle this better, perhaps with PACKET_LOSS_FROM_SERVER kind of error code?
     }
-    return Unmarshaller.unmarshalResponse(responseData);
+    Response response = Unmarshaller.unmarshalResponse(responseData);
+    System.out.println(
+        "In ClientNetwork: Received response from server:\n" + response.toString());
+    return response;
   }
 }

@@ -43,7 +43,7 @@ public class Unmarshaller {
     switch (operationType) {
       case READ:
         return new Request(requestId, operationType, filePath, bytesToRead, offset);
-      case WRITE:
+      case WRITE_INSERT:
         int dataSize = buffer.getInt();
         byte[] fileData = null;
         if (dataSize > 0) {
@@ -52,7 +52,7 @@ public class Unmarshaller {
         }
         return new Request(requestId, operationType, filePath, offset, fileData);
       case MONITOR:
-        return new Request(requestId, operationType, filePath, true, monitorDuration);
+        return new Request(requestId, operationType, filePath, monitorDuration);
       default:
         throw new IllegalArgumentException("Unrecognized operation type for unmarshalling Request");
     }

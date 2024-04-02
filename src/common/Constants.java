@@ -9,10 +9,10 @@ public class Constants {
   public enum OperationType {
     SHUTDOWN_SERVER("Shutdown Server"),
     READ("Read"),
-    WRITE("Write"),
+    WRITE_INSERT("Write Insert"),
     MONITOR("Monitor"),
-    CUSTOM_OPERATION_1("CustomOperation1"), // TODO: Modify for custom operation 1
-    CUSTOM_OPERATION_2("CustomOperation2"); // TODO: Modify for custom operation 2
+    WRITE_DELETE("Write Delete"),
+    FILE_INFO("File Info");
 
     private final String description;
 
@@ -27,7 +27,6 @@ public class Constants {
 
   /**
    * Enum representing various status codes used in the response to denote operation outcomes.
-   * TODO: Add status codes for the 2 custom operations.
    */
   public enum StatusCode {
     SUCCESS(0, "Success"),
@@ -37,12 +36,15 @@ public class Constants {
     READ_SUCCESS(100, "Read Success"),
     READ_ERROR(101, "Read Error"),
     READ_INCOMPLETE(102, "Read Incomplete"),
-    WRITE_SUCCESS(200, "Write Success"),
-    WRITE_ERROR(201, "Write Error"),
-    WRITE_INCOMPLETE(202, "Write Incomplete"),
-
+    WRITE_INSERT_SUCCESS(200, "Write Insert Success"),
+    WRITE_INSERT_ERROR(201, "Write Insert Error"),
+    WRITE_INSERT_INCOMPLETE(202, "Write Incomplete"),
     MONITOR_SUCCESS(300, "Monitor Success"),
-    MONITOR_ERROR(301, "Monitor Error");
+    MONITOR_ERROR(301, "Monitor Error"),
+    WRITE_DELETE_SUCCESS(400, "Write Delete Success"),
+    WRITE_DELETE_ERROR(401, "Write Delete Error"),
+    FILE_INFO_SUCCESS(500, "File Info Success"),
+    FILE_INFO_ERROR(501, "File Info Error");
 
     private final int code;
     private final String description;

@@ -40,11 +40,11 @@ public class ServerNetwork {
       response = new Response(Constants.StatusCode.SHUTDOWN, null, "Server will shutdown");
     } else {
       System.out.println(
-          "In ServerNetwork: Calling serverService.processRequest() with Request object:\n"
+          "In ServerNetwork: Received request from client:\n"
               + request.toString());
       response = serverService.processRequest(request);
       System.out.println(
-          "In ServerNetwork: Returning response object from serverService.processRequest():\n"
+          "In ServerNetwork: Sending response to client:\n"
               + response.toString());
     }
 

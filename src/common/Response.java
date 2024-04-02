@@ -47,12 +47,14 @@ public class Response {
     return message;
   }
 
-  // toString() method for sanity check
+  /**
+   * Returns a string representation of the Response object. For logging/debugging purposes.
+   */
   @Override
   public String toString() {
     return "Response{" +
         "statusCode=" + statusCode +
-        ", data=" + (data == null ? "null" : data.length + " bytes") +
+        ", data=" + (data == null ? "null" : new String(data)) +
         ", message='" + message + '\'' +
         '}';
   }

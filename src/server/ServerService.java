@@ -46,10 +46,10 @@ public class ServerService {
     try (RandomAccessFile file = new RandomAccessFile(request.getFilePath(), "r")) {
       file.seek(
           request.getOffset());  // Sets the file pointer to the specified offset, determining where to start reading
-      byte[] data = new byte[(int) request.getBytesToRead()]; // Creates a byte array to store the read data
+      byte[] data = new byte[(int) request.getBytesToReadOrDelete()]; // Creates a byte array to store the read data
       int bytesRead = file.read(data); // Stores the number of bytes read from the file
       if (bytesRead
-          != request.getBytesToRead()) { // Indicates that the read operation was incomplete
+          != request.getBytesToReadOrDelete()) { // Indicates that the read operation was incomplete
         // Possible due to reaching the end of the file before reading the expected number of bytes
         return new Response(StatusCode.READ_INCOMPLETE, Arrays.copyOf(data, bytesRead),
             "Read partially successful.");
@@ -74,7 +74,7 @@ public class ServerService {
       byte[] data = request.getData(); // The data to be written to the file
       long fileSize = sourceFile.length(); // The size of the file in bytes
       if (offset > fileSize) { // Checks if the offset exceeds the file size
-        return new Response(StatusCode.WRITE_ERROR, null, "Offset exceeds file size.");
+        return new Response(StatusCode.WRITE_INSERT_ERROR, null, "Offset exceeds file size.");
       }
       // Reads the content after the offset and stores it temporarily to avoid overwriting during data insertion
       byte[] buffer = new byte[1024]; // Buffer to store the read data
@@ -97,9 +97,10 @@ public class ServerService {
       if (tempFile.exists()) {
         tempFile.delete();
       }
-      return new Response(StatusCode.WRITE_SUCCESS, null, "Write successful.");
+      return new Response(StatusCode.WRITE_INSERT_SUCCESS, null, "Write successful.");
     } catch (IOException e) {
-      return new Response(StatusCode.WRITE_ERROR, null, "Error writing to file: " + e.getMessage());
+      return new Response(StatusCode.WRITE_INSERT_ERROR, null,
+          "Error writing to file: " + e.getMessage());
     }
   }
 
