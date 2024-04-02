@@ -5,6 +5,9 @@ import common.Constants.OperationType;
 import common.Request;
 import common.Response;
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.Random;
 
 /**
  * ClientService acts as the intermediary between the client UI and the network layer, facilitating
@@ -13,6 +16,7 @@ import java.io.IOException;
 public class ClientService {
 
   private ClientNetwork clientNetwork;
+  private final Random random = new Random();
 
   /**
    * Constructs a ClientService instance with a specified ClientNetwork.
@@ -123,6 +127,39 @@ public class ClientService {
     } catch (IOException e) {
       return "Error fetching file info: " + e.getMessage();
     }
+  }
+
+  /**
+   * Generates a unique request ID based on the current system time and the local host's IP
+   * address.
+   *
+   * @return A unique request ID.
+   */
+  private long generateRequestId() {
+    // Get the current system time in nanoseconds
+    long nanoTimePart = System.nanoTime();
+
+    long ipPart; // Variable to hold the numeric value of the IP address
+    try {
+      // Retrieve the local host's IP address in byte array form
+      byte[] ipBytes = InetAddress.getLocalHost().getAddress();
+      ipPart = 0; // Initialize ipPart for bitwise operations
+
+      // Convert the byte array to a long value
+      for (byte b : ipBytes) {
+        // Shift ipPart 8 bits to the left to make room for the next byte
+        // and add the byte value to ipPart.
+        // The bitwise AND with 0xFF ensures that the byte is treated as an unsigned value.
+        ipPart = (ipPart << 8) | (b & 0xFF);
+      }
+    } catch (UnknownHostException e) {
+      // If the IP address cannot be determined, use a random long value as a fallback.
+      ipPart = random.nextLong();
+    }
+
+    // Combine the nanoTime and IP address components to form a unique ID.
+    // XOR is used here to combine both parts while maintaining a reasonable chance of uniqueness.
+    return nanoTimePart ^ ipPart;
   }
 
 }
