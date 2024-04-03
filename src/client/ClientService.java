@@ -33,16 +33,7 @@ public class ClientService {
     this.clientNetwork = clientNetwork;
     this.clientCache = new ClientCache(freshnessInterval);
   }
-
-  /**
-   * Sets the network layer this service interacts with.
-   *
-   * @param clientNetwork The ClientNetwork to be used by this service.
-   */
-  public void setClientNetwork(ClientNetwork clientNetwork) {
-    this.clientNetwork = clientNetwork;
-  }
-
+  
   /**
    * Handles a request to read a file from the server. If the file content is cached, fresh and
    * within valid range, the cached content is returned without sending a request to the server.

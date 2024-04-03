@@ -106,7 +106,7 @@ public class ClientUI {
     String filePath = promptForNonEmptyString("Enter file path:");
     String infoResult = clientService.handleFileInfoRequest(filePath);
     System.out.println(
-        infoResult.isEmpty() ? "Error reading file info." : "== File Info ==\n" + infoResult);
+        infoResult.isEmpty() ? "Error reading file info." : "\n== File Info ==\n" + infoResult);
   }
 
   /**

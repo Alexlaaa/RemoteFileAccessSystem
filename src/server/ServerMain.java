@@ -40,7 +40,7 @@ public class ServerMain {
         "\n**Server is starting on port " + port + " with " + strategyType + " strategy "
             + "and probabilities:\nrequest receive = " + requestReceiveProbability
             + ", response send = "
-            + replySendProbability + ".**");
+            + replySendProbability + ".**\n");
     serverUDP.listen();
   }
 }
