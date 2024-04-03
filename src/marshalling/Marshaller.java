@@ -70,6 +70,7 @@ public class Marshaller {
     byte[] messageBytes = response.getMessage().getBytes();
     buffer.putInt(messageBytes.length);
     buffer.put(messageBytes);
+    buffer.putLong(response.getLastModifiedTimeAtServer());
 
     return Arrays.copyOf(buffer.array(), buffer.position());
   }

@@ -76,7 +76,7 @@ public class Unmarshaller {
     // Check if there's enough data to read the status code
     if (buffer.remaining() < Integer.BYTES) {
       return new Response(Constants.StatusCode.GENERAL_ERROR, null,
-          "Incomplete data: Unable to extract status code.");
+          "Incomplete data: Unable to extract status code.", -1);
     }
 
     // Read the status code value from the buffer
@@ -90,7 +90,7 @@ public class Unmarshaller {
 
     // Check if there's enough data to read the size of the data part
     if (buffer.remaining() < Integer.BYTES) {
-      return new Response(statusCode, null, "Incomplete data: Unable to extract data size.");
+      return new Response(statusCode, null, "Incomplete data: Unable to extract data size.", -1);
     }
 
     // Read the data size
@@ -101,7 +101,7 @@ public class Unmarshaller {
 
     // Check if there's enough data to read the file data
     if (buffer.remaining() < dataSize) {
-      return new Response(statusCode, null, "Incomplete data: Insufficient file data.");
+      return new Response(statusCode, null, "Incomplete data: Insufficient file data.", -1);
     }
 
     // Read the file data into the byte array
@@ -110,7 +110,7 @@ public class Unmarshaller {
     // Check if there's enough data to read the size of the message part
     if (buffer.remaining() < Integer.BYTES) {
       return new Response(statusCode, fileData,
-          "Incomplete data: Unable to extract message length.");
+          "Incomplete data: Unable to extract message length.", -1);
     }
 
     // Read the message size
@@ -121,7 +121,7 @@ public class Unmarshaller {
 
     // Check if there's enough data to read the message data
     if (buffer.remaining() < messageLength) {
-      return new Response(statusCode, fileData, "Incomplete data: Insufficient message data.");
+      return new Response(statusCode, fileData, "Incomplete data: Insufficient message data.", -1);
     }
 
     // Read the message data into the byte array
@@ -130,7 +130,9 @@ public class Unmarshaller {
     // Convert the message byte array to a string
     String message = new String(messageBytes);
 
+    long lastModifiedTimeAtServer = buffer.getLong();
+
     // Return the constructed Response object
-    return new Response(statusCode, fileData, message);
+    return new Response(statusCode, fileData, message, lastModifiedTimeAtServer);
   }
 }

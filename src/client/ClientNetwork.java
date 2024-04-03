@@ -32,6 +32,11 @@ public class ClientNetwork {
     setStrategy(networkStrategyType);
   }
 
+  /**
+   * Sets the network strategy to use for sending and receiving data.
+   *
+   * @param strategyType The type of network strategy to use.
+   */
   public void setStrategy(NetworkStrategyType strategyType) {
     switch (strategyType) {
       case AT_LEAST_ONCE:
@@ -60,7 +65,8 @@ public class ClientNetwork {
     if (responseData == null || responseData.length == 0) {
       // Handle the case where no response is received
       return new Response(Constants.StatusCode.GENERAL_ERROR, null,
-          "No response received"); // TODO: Handle this better, perhaps with PACKET_LOSS_FROM_SERVER kind of error code?
+          "No response received",
+          -1); // TODO: Handle this better, perhaps with PACKET_LOSS_FROM_SERVER kind of error code?
     }
     Response response = Unmarshaller.unmarshalResponse(responseData);
     System.out.println(

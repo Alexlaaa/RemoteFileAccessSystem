@@ -37,7 +37,7 @@ public class ServerNetwork {
     Response response;
 
     if (request.getOperationType() == Constants.OperationType.SHUTDOWN_SERVER) {
-      response = new Response(Constants.StatusCode.SHUTDOWN, null, "Server will shutdown");
+      response = new Response(Constants.StatusCode.SHUTDOWN, null, "Server will shutdown", -1);
     } else {
       System.out.println(
           "In ServerNetwork: Received request from client:\n"

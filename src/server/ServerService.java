@@ -31,7 +31,7 @@ public class ServerService {
           handleMonitorRequest(request);
       case WRITE_DELETE -> handleWriteDeleteRequest(request);
       case FILE_INFO -> handleFileInfoRequest(request);
-      default -> new Response(StatusCode.INVALID_OPERATION, null, "Invalid operation type.");
+      default -> new Response(StatusCode.INVALID_OPERATION, null, "Invalid operation type.", -1);
     };
   }
 
@@ -43,10 +43,15 @@ public class ServerService {
    * @return A response object containing the read data or an error message.
    */
   private Response handleReadRequest(Request request) {
-    try (RandomAccessFile sourceFile = new RandomAccessFile(request.getFilePath(), "r")) {
+    File file = new File(request.getFilePath());
+    if (!file.exists()) {
+      return new Response(StatusCode.READ_ERROR, null, "File does not exist.", -1);
+    }
+
+    try (RandomAccessFile sourceFile = new RandomAccessFile(file, "r")) {
       if (request.getOffset() >= sourceFile.length()) {
         return new Response(StatusCode.READ_ERROR, null,
-            "Offset is beyond the file length.");
+            "Offset is beyond the file length.", -1);
       }
 
       // Sets the file pointer to the specified offset, determining where to start reading the file
@@ -62,17 +67,18 @@ public class ServerService {
       if (bytesRead != request.getBytesToReadOrDelete()) {
         String message = "Read partially successful // File Length -> " + sourceFile.length();
         return new Response(StatusCode.READ_INCOMPLETE, Arrays.copyOf(data, bytesRead),
-            message);
+            message, -1);
       }
 
       // Include the file length in the response message
       String message = "Read successful // File Length -> " + sourceFile.length();
+
       // Read operation was successful
       return new Response(StatusCode.READ_SUCCESS, data,
-          message);
+          message, file.lastModified()); // Include the last modified time of the file
     } catch (IOException e) {
       return new Response(StatusCode.READ_ERROR, null,
-          "Error reading file: " + e.getMessage());
+          "Error reading file: " + e.getMessage(), -1);
     }
   }
 
@@ -83,7 +89,12 @@ public class ServerService {
    * @return A response object indicating the success or failure of the write operation.
    */
   private Response handleWriteInsertRequest(Request request) {
-    try (RandomAccessFile sourceFile = new RandomAccessFile(request.getFilePath(), "rw")) {
+    File file = new File(request.getFilePath());
+    if (!file.exists()) {
+      return new Response(StatusCode.READ_ERROR, null, "File does not exist.", -1);
+    }
+
+    try (RandomAccessFile sourceFile = new RandomAccessFile(file, "rw")) {
       long offset = request.getOffset(); // The offset at which to start writing the data
       byte[] data = request.getData(); // The data to be written to the file
 
@@ -127,10 +138,10 @@ public class ServerService {
 
       // Include the updated file length in the response message
       String message = "Write successful // Updated File Length -> " + sourceFile.length();
-      return new Response(StatusCode.WRITE_INSERT_SUCCESS, null, message);
+      return new Response(StatusCode.WRITE_INSERT_SUCCESS, null, message, file.lastModified());
     } catch (IOException e) {
       return new Response(StatusCode.WRITE_INSERT_ERROR, null,
-          "Error writing to file: " + e.getMessage());
+          "Error writing to file: " + e.getMessage(), -1);
     }
   }
 
@@ -142,7 +153,8 @@ public class ServerService {
    */
   private Response handleMonitorRequest(Request request) {
     // Placeholder response until monitor implementation is complete.
-    return new Response(StatusCode.MONITOR_ERROR, null, "Monitor functionality not implemented.");
+    return new Response(StatusCode.MONITOR_ERROR, null, "Monitor functionality not implemented.",
+        -1);
   }
 
   /**
@@ -153,10 +165,15 @@ public class ServerService {
    * @return A response object indicating the success or failure of the delete operation.
    */
   private Response handleWriteDeleteRequest(Request request) {
-    try (RandomAccessFile sourceFile = new RandomAccessFile(request.getFilePath(), "rw")) {
+    File file = new File(request.getFilePath());
+    if (!file.exists()) {
+      return new Response(StatusCode.READ_ERROR, null, "File does not exist.", -1);
+    }
+
+    try (RandomAccessFile sourceFile = new RandomAccessFile(file, "rw")) {
       // Cannot delete beyond the file size
       if (request.getOffset() + request.getBytesToReadOrDelete() > sourceFile.length()) {
-        return new Response(StatusCode.WRITE_DELETE_ERROR, null, "Cannot delete beyond EOF.");
+        return new Response(StatusCode.WRITE_DELETE_ERROR, null, "Cannot delete beyond EOF.", -1);
       }
 
       // Calculate the starting point of the remaining content after deletion
@@ -185,10 +202,10 @@ public class ServerService {
 
       // Include the updated file length in the response message
       String message = "Delete successful // Updated File Length -> " + sourceFile.length();
-      return new Response(StatusCode.WRITE_DELETE_SUCCESS, null, message);
+      return new Response(StatusCode.WRITE_DELETE_SUCCESS, null, message, file.lastModified());
     } catch (IOException e) {
       return new Response(StatusCode.WRITE_DELETE_ERROR, null,
-          "Error deleting content: " + e.getMessage());
+          "Error deleting content: " + e.getMessage(), -1);
     }
   }
 
@@ -203,7 +220,7 @@ public class ServerService {
     File file = new File(request.getFilePath());
 
     if (!file.exists()) {
-      return new Response(StatusCode.FILE_INFO_ERROR, null, "File does not exist.");
+      return new Response(StatusCode.FILE_INFO_ERROR, null, "File does not exist.", -1);
     }
 
     SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -223,7 +240,7 @@ public class ServerService {
         "}";
 
     return new Response(StatusCode.FILE_INFO_SUCCESS, fileInfo.getBytes(),
-        "File info retrieved successfully.");
+        "File info retrieved successfully.", file.lastModified());
   }
 
 }

@@ -12,7 +12,7 @@ public class ClientMain {
     // Initialization of ClientNetwork and ClientUDP are deferred to ClientUI
     // Network strategy selection for ClientService is also deferred to ClientUI
     ClientService clientService = new ClientService(
-        null);  // Initially null, will be set up later in ClientUI based on user input
+        null, 20000);  // Initially null, will be set up later in ClientUI based on user input
     ClientUI clientUI = new ClientUI(clientService);
     clientUI.start();
   }
