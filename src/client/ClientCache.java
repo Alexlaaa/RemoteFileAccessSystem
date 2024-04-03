@@ -134,13 +134,11 @@ public class ClientCache {
    */
   public long getLastModifiedTime(String filePath, long offset, long bytesToRead) {
     FileCacheEntry entry = cache.get(filePath);
-    if (entry != null
-        && (System.currentTimeMillis() - entry.lastValidationTime) < freshnessInterval) {
-      if (offset >= entry.offset && (offset + bytesToRead) <= (entry.offset + entry.bytesToRead)) {
-        return entry.lastModifiedTimeAtServer;
-      }
+    if (entry != null && offset >= entry.offset && (offset + bytesToRead) <= (entry.offset
+        + entry.bytesToRead)) {
+      return entry.lastModifiedTimeAtServer;
     }
-    return -1;  // Indicates the range is not covered or the cache entry is not fresh
+    return -1;  // Indicates not cached or the range is not covered by the cache
   }
-
+  
 }

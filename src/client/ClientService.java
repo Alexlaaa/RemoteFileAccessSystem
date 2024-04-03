@@ -18,7 +18,6 @@ public class ClientService {
 
   private ClientNetwork clientNetwork;
   private final ClientCache clientCache;
-  private final long freshnessInterval;
   private final Random random = new Random();
 
   /**
@@ -31,7 +30,6 @@ public class ClientService {
    */
   public ClientService(ClientNetwork clientNetwork, long freshnessInterval) {
     this.clientNetwork = clientNetwork;
-    this.freshnessInterval = freshnessInterval;
     this.clientCache = new ClientCache(freshnessInterval);
   }
 
@@ -45,8 +43,8 @@ public class ClientService {
   }
 
   /**
-   * Handles a request to read a file from the server. If the file content is cached and fresh, the
-   * cached content is returned without sending a request to the server.
+   * Handles a request to read a file from the server. If the file content is cached, fresh and
+   * within valid range, the cached content is returned without sending a request to the server.
    *
    * @param filePath    The path of the file to read.
    * @param bytesToRead The number of bytes to read from the file.
@@ -57,14 +55,14 @@ public class ClientService {
     byte[] cachedContent = clientCache.getFileContentIfFresh(filePath, offset,
         bytesToRead); // Checks if cached content is fresh and within valid range
     long cachedLastModifiedTime = clientCache.getLastModifiedTime(filePath, offset,
-        bytesToRead);  // -1 if not cached or out of range
+        bytesToRead);  // -1 if not cached or out of valid range
 
-    // Cache hit, content is fresh and offset and bytesToRead are within valid range of the cache content, return cached data instead of fetching from server
+    // Cache hit, content is fresh and within valid range, return cached content
     if (cachedLastModifiedTime != -1 && cachedContent != null && cachedContent.length > 0) {
       return "*Content retrieved from cache:*\n" + new String(cachedContent);
     }
 
-    // Cache miss, content not fresh or offset and bytesToRead are not within valid range of the cache content, fetch from server
+    // Cache miss, content is not cached, is outdated or is out of valid range, send read request to server
     Request request = new Request(generateRequestId(), Constants.OperationType.READ,
         filePath, bytesToRead, offset);
     try {
@@ -73,23 +71,25 @@ public class ClientService {
       if (statusCode == Constants.StatusCode.READ_SUCCESS
           || statusCode == StatusCode.READ_INCOMPLETE) {
         long lastModifiedTimeByServer = response.getLastModifiedTimeAtServer();
-        // If not previously cached, cache the file content
+        // If not previously cached or is out of valid range, cache the file content
         if (cachedLastModifiedTime == -1) {
-          System.out.println("In ClientService: File not previously cached, caching content...");
+          System.out.println(
+              "In ClientService: File not previously cached or is out of valid range, caching content...\n");
           clientCache.cacheFileContent(filePath, response.getData(), lastModifiedTimeByServer,
               offset, bytesToRead);
         }
-        // Else if previously cached and cache entry is still valid despite being outdated, update validation time
-        else if (lastModifiedTimeByServer == cachedLastModifiedTime) {
+        // Else if previously cached and within valid range, but outdated, and still the same file as server, update validation time
+        else if (lastModifiedTimeByServer
+            == cachedLastModifiedTime) { // Indicating the file cached is the same as the server
           System.out.println(
-              "In ClientService: File previously cached but is outdated and still valid (lastModifiedTimeByServer == cacheLastModifiedTime), updating cache validation time...");
+              "In ClientService: File previously cached is within valid range and outdated, but still the same file as server (lastModifiedTimeByServer == cacheLastModifiedTime), updating cache validation time...\n");
           // Update validation time of existing cache entry
           clientCache.updateValidationTime(filePath, lastModifiedTimeByServer);
         }
-        // Cache entry is invalid and outdated, invalidate the cache and cache the new content
+        // Else if previously cached and within range and outdated, but different file than server, invalidate cache and cache new content
         else {
           System.out.println(
-              "In ClientService: File previously cached but is outdated and invalid (lastModifiedTimeByServer != cacheLastModifiedTime), invalidating cache and caching new content...");
+              "In ClientService: File previously cached is within valid range and outdated, but is a different file from server (lastModifiedTimeByServer != cacheLastModifiedTime), invalidating cache and caching new content...\n");
           clientCache.invalidate(filePath);
           clientCache.cacheFileContent(filePath, response.getData(), lastModifiedTimeByServer,
               offset, bytesToRead);
