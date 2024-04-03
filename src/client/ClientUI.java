@@ -1,6 +1,5 @@
 package client;
 
-import common.Constants;
 import java.io.IOException;
 import java.util.InputMismatchException;
 import java.util.Scanner;
@@ -11,63 +10,16 @@ import java.util.Scanner;
  */
 public class ClientUI {
 
-  private final ClientService clientService;
+  private ClientService clientService;
   private final Scanner scanner = new Scanner(System.in);
-  private String serverAddress;
-  private int serverPort;
 
   /**
-   * Constructs a ClientUI with the specified ClientService.
+   * Setter for the client service.
    *
-   * @param clientService The service layer this UI will interact with.
-   * @throws IOException If an I/O error occurs during setup.
+   * @param clientService The client service to use for handling client requests.
    */
-  public ClientUI(ClientService clientService) throws IOException {
+  public void setClientService(ClientService clientService) {
     this.clientService = clientService;
-    initialize();
-  }
-
-  /**
-   * Initializes the ClientUI by setting up the server configuration and network strategy.
-   *
-   * @throws IOException If an I/O error occurs during setup.
-   */
-  public void initialize() throws IOException {
-    setServerConfig(); // Done once, at the start
-    setupNetworkStrategy(); // Can be changed by the user
-  }
-
-  /**
-   * Sets up the server configuration based on user input.
-   */
-  private void setServerConfig() {
-    serverAddress = promptForNonEmptyString(
-        "Enter server address:");
-    serverPort = (int) promptForLong("Enter server port:");
-  }
-
-  /**
-   * Sets up the network strategy based on user input.
-   *
-   * @throws IOException If an I/O error occurs during network setup.
-   */
-  private void setupNetworkStrategy() throws IOException {
-    int strategyChoice = (int) promptForLong(
-        "Select Invocation Type:\n1. At Least Once\n2. At Most Once");
-    while (strategyChoice != 1 && strategyChoice != 2) {
-      strategyChoice = (int) promptForLong(
-          "Invalid choice. Select Invocation Type:\n1. At Least Once\n2. At Most Once");
-    }
-
-    Constants.NetworkStrategyType selectedStrategy =
-        strategyChoice == 1 ? Constants.NetworkStrategyType.AT_LEAST_ONCE
-            : Constants.NetworkStrategyType.AT_MOST_ONCE;
-
-    // Initialize ClientUDP
-    ClientUDP clientUDP = new ClientUDP(serverAddress, serverPort, 10000, 1, 1);
-    // Initialize ClientNetwork with the selected strategy
-    ClientNetwork clientNetwork = new ClientNetwork(clientUDP, selectedStrategy);
-    clientService.setClientNetwork(clientNetwork);
   }
 
   /**
@@ -76,11 +28,9 @@ public class ClientUI {
    * @throws IOException If an I/O error occurs during command execution.
    */
   public void start() throws IOException {
-    System.out.println("Client UI Started.");
-
     while (true) {
       System.out.println(
-          "Enter command:\n1. Read File Content\n2. Write Content in File\n3. Monitor File\n4. Delete Content in File\n5. Read File Info\n6. Change Network Strategy\n7. Exit");
+          "Enter command:\n1. Read File Content\n2. Write Content in File\n3. Monitor File\n4. Delete Content in File\n5. Read File Info\n6. Exit");
       int command = scanner.nextInt();
       scanner.nextLine();  // Consume newline
 
@@ -90,8 +40,7 @@ public class ClientUI {
         case 3 -> handleMonitorFile();
         case 4 -> handleWriteDeleteContent();
         case 5 -> handleFileInfo();
-        case 6 -> setupNetworkStrategy(); // Change network strategy
-        case 7 -> {
+        case 6 -> {
           System.out.println("Exiting...");
           return;
         }
@@ -195,5 +144,120 @@ public class ClientUI {
       }
     } while (input.isEmpty());
     return input;
+  }
+
+  /**
+   * Prompts the user for an int value with a specific message and validates the input.
+   *
+   * @param message The message to display to the user.
+   * @return The validated int value inputted by the user.
+   */
+  private int promptForInt(String message) {
+    while (true) {
+      try {
+        System.out.println(message);
+        int value = scanner.nextInt();
+        scanner.nextLine(); // Consume newline
+        return value;
+      } catch (InputMismatchException e) {
+        System.out.println("\nInvalid input. Please enter a numerical value.\n");
+        scanner.nextLine(); // Consume the invalid input
+      }
+    }
+  }
+
+  /**
+   * Prompts the user for a double value within the range of [0.0, 1.0] with a specific message and
+   * validates the input.
+   *
+   * @param message The message to display to the user.
+   * @return The validated double value inputted by the user.
+   */
+  private double promptForDouble(String message) {
+    while (true) {
+      try {
+        System.out.println(message);
+        double value = scanner.nextDouble();
+        if (value >= 0.0 && value <= 1.0) {
+          scanner.nextLine(); // Consume newline
+          return value;
+        } else {
+          System.out.println("\nPlease enter a value between 0.0 and 1.0.");
+        }
+      } catch (InputMismatchException e) {
+        System.out.println("\nInvalid input. Please enter a numerical value.");
+        scanner.nextLine(); // Consume the invalid input
+      }
+    }
+  }
+
+  /**
+   * Prompts the user to enter the port number for client to connect to the server.
+   *
+   * @return The port number entered by the user.
+   */
+  public int selectPort() {
+    return promptForInt("\nEnter the port number for client to connect to the server:");
+  }
+
+  /**
+   * Prompts the user to enter the server address.
+   *
+   * @return The server address entered by the user.
+   */
+  public String selectServerAddress() {
+    return promptForNonEmptyString("\nEnter server address:");
+  }
+
+  /**
+   * Prompts the user to enter the timeout for the client to wait for a response.
+   *
+   * @return The timeout in milliseconds for the client to wait for a response.
+   */
+  public int selectTimeout() {
+    return promptForInt(
+        "\nEnter the timeout in milliseconds for the client to wait for a response (e.g., 10,000ms):");
+  }
+
+  /**
+   * Prompts the user to enter the probability for the server to receive requests.
+   *
+   * @return The probability for the server to receive requests.
+   */
+  public double selectRequestSendProbability() {
+    return promptForDouble(
+        "\nEnter the probability (0.0 to 1.0) for the client to send requests:");
+  }
+
+  /**
+   * Prompts the user to enter the probability for the server to send responses.
+   *
+   * @return The probability for the server to send responses.
+   */
+  public double selectReplyReceiveProbability() {
+    return promptForDouble(
+        "\nEnter the probability (0.0 to 1.0) for the client to receive responses:");
+  }
+
+  /**
+   * Prompts the user to enter the maximum number of retries for sending a request on client
+   * network.
+   *
+   * @return The maximum number of retries for sending a request on client network.
+   */
+  public int selectMaxRetries() {
+    return promptForInt(
+        "\nEnter the maximum number of retries for sending a request on client network (e.g., 10):");
+  }
+
+  /**
+   * Prompts the user to enter the freshness interval for the client to consider a file fresh in the
+   * cache.
+   *
+   * @return The freshness interval in milliseconds for the client to consider a file fresh.
+   */
+  public long selectFreshnessInterval() {
+    return promptForLong(
+        "\nEnter the freshness interval in milliseconds for the client to consider a file fresh in the cache (e.g., 30,000ms):");
   }
 }

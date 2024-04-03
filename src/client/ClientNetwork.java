@@ -1,76 +1,73 @@
 package client;
 
 import common.Constants;
-import common.Constants.NetworkStrategyType;
 import common.Request;
 import common.Response;
 import java.io.IOException;
 import marshalling.Marshaller;
 import marshalling.Unmarshaller;
-import strategy.AtLeastOnceStrategy;
-import strategy.AtMostOnceStrategy;
-import strategy.NetworkStrategy;
 
 /**
  * ClientNetwork acts as an intermediary between the network layer (ClientUDP) and the service layer
- * (ClientService), handling the transformation of data and invocation of the appropriate ClientUDP
- * methods.
+ * (ClientService), handling the sending of requests and receiving of responses.
  */
 public class ClientNetwork {
 
   private final ClientUDP clientUDP;
-  private NetworkStrategy networkStrategy;
+  private final int maxRetries; // The maximum number of retries for sending a message.
 
   /**
-   * Constructs a ClientNetwork with the specified ClientUDP and network strategy type.
+   * Constructs a ClientNetwork with the specified ClientUDP.
    *
-   * @param clientUDP           The UDP client used for network communication.
-   * @param networkStrategyType The type of network strategy to use.
+   * @param clientUDP  The UDP client used for network communication.
+   * @param maxRetries The maximum number of retries for sending a message.
    */
-  public ClientNetwork(ClientUDP clientUDP, NetworkStrategyType networkStrategyType) {
+  public ClientNetwork(ClientUDP clientUDP, int maxRetries) {
     this.clientUDP = clientUDP;
-    setStrategy(networkStrategyType);
+    this.maxRetries = maxRetries;
   }
 
   /**
-   * Sets the network strategy to use for sending and receiving data.
-   *
-   * @param strategyType The type of network strategy to use.
-   */
-  public void setStrategy(NetworkStrategyType strategyType) {
-    switch (strategyType) {
-      case AT_LEAST_ONCE:
-        this.networkStrategy = new AtLeastOnceStrategy(this.clientUDP, 10);
-        break;
-      case AT_MOST_ONCE:
-        this.networkStrategy = new AtMostOnceStrategy(this.clientUDP);
-        break;
-      default:
-        throw new IllegalArgumentException("Unknown strategy type");
-    }
-  }
-
-  /**
-   * Sends a Request to the server and waits for a Response.
+   * Sends a Request to the server and waits for a Response, retrying as necessary.
    *
    * @param request The Request object to send.
    * @return The Response object received from the server.
    * @throws IOException if network communication fails.
    */
   public Response sendRequest(Request request) throws IOException {
-    System.out.println(
-        "In ClientNetwork: Sending request to server:\n" + request.toString() + "\n");
+    System.out.println("In ClientNetwork: Sending request to server:\n" + request);
+
     byte[] requestData = Marshaller.marshal(request);
-    byte[] responseData = networkStrategy.sendAndReceive(requestData);
-    if (responseData == null || responseData.length == 0) {
-      // Handle the case where no response is received
-      return new Response(Constants.StatusCode.GENERAL_ERROR, null,
-          "No response received",
-          -1); // TODO: Handle this better, perhaps with PACKET_LOSS_FROM_SERVER kind of error code?
+    byte[] responseData = null;
+    int attempts = 0;
+
+    // Loop until a response is received or the maximum number of retries is reached.
+    while (responseData == null && attempts < maxRetries) {
+      try {
+        responseData = clientUDP.sendAndReceive(requestData);
+        // If the response is empty, it is considered a failed attempt.
+        if (responseData == null || responseData.length == 0) {
+          System.out.println("No response received, retrying attempt " + (attempts + 1));
+          attempts++;
+          responseData = null; // Reset response data for the next attempt
+        }
+      } catch (IOException e) {
+        System.out.println("IOException occurred: " + e.getMessage());
+        attempts++;
+      }
     }
+
+    // If after all retries no response is received, return an error response.
+    if (responseData == null) {
+      System.out.println(
+          "In ClinetNetwork: Failed to receive a response after " + maxRetries + " attempts.");
+      return new Response(Constants.StatusCode.GENERAL_ERROR, null,
+          "No response received after maximum retries.", -1);
+    }
+
+    // Unmarshal the response and return it.
     Response response = Unmarshaller.unmarshalResponse(responseData);
-    System.out.println(
-        "In ClientNetwork: Received response from server:\n" + response.toString() + "\n");
+    System.out.println("In ClientNetwork: Received response from server:\n" + response);
     return response;
   }
 
@@ -80,6 +77,6 @@ public class ClientNetwork {
    * @return The ClientUDP instance.
    */
   public ClientUDP getClientUDP() {
-    return this.clientUDP;
+    return clientUDP;
   }
 }

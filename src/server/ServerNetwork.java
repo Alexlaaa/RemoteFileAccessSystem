@@ -3,10 +3,12 @@ package server;
 import common.Constants;
 import common.Request;
 import common.Response;
-import java.io.IOException;
 import java.net.InetAddress;
 import marshalling.Marshaller;
 import marshalling.Unmarshaller;
+import strategy.AtLeastOnceStrategy;
+import strategy.AtMostOnceStrategy;
+import strategy.ServerNetworkStrategy;
 
 /**
  * ServerNetwork acts as an intermediary between the network layer (ServerUDP) and the service layer
@@ -16,41 +18,37 @@ import marshalling.Unmarshaller;
 public class ServerNetwork {
 
   private final ServerService serverService;
+  private final ServerNetworkStrategy networkStrategy;
 
   /**
    * Constructs a ServerNetwork with the specified ServerService.
    *
    * @param serverService The service layer that will process the requests.
+   * @param strategyType  The network strategy to use, either at-least-once or at-most-once.
    */
-  public ServerNetwork(ServerService serverService) {
+  public ServerNetwork(ServerService serverService, Constants.NetworkStrategyType strategyType) {
     this.serverService = serverService;
+    // Initialize the network strategy based on the type
+    if (strategyType == Constants.NetworkStrategyType.AT_LEAST_ONCE) {
+      this.networkStrategy = new AtLeastOnceStrategy();
+    } else {
+      this.networkStrategy = new AtMostOnceStrategy();
+    }
   }
 
   /**
    * Processes the received request, invokes the appropriate service method, and prepares the
-   * response.
+   * response using the specified network strategy.
    *
    * @param data          The received byte array
    * @param clientAddress The IP address of the client.
    * @param clientPort    The port number of the client.
    * @return The byte array to be sent as a response.
    */
-  public byte[] processRequest(byte[] data, InetAddress clientAddress, int clientPort)
-      throws IOException {
+  public byte[] processRequest(byte[] data, InetAddress clientAddress, int clientPort) {
     Request request = Unmarshaller.unmarshalRequest(data);
-    Response response;
-
-    if (request.getOperationType() == Constants.OperationType.SHUTDOWN_SERVER) {
-      response = new Response(Constants.StatusCode.SHUTDOWN, null, "Server will shutdown", -1);
-    } else {
-      System.out.println(
-          "In ServerNetwork: Received request from client:\n"
-              + request.toString() + "\n");
-      response = serverService.processRequest(request, clientAddress, clientPort);
-      System.out.println(
-          "In ServerNetwork: Sending response to client:\n"
-              + response.toString() + "\n");
-    }
+    Response response = networkStrategy.processRequest(request, serverService, clientAddress,
+        clientPort);
 
     return Marshaller.marshal(response);
   }
@@ -67,5 +65,4 @@ public class ServerNetwork {
     // Assuming we check for a specific status code to signal shutdown
     return response.getStatusCode() == Constants.StatusCode.SHUTDOWN;
   }
-
 }

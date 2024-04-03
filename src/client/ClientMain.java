@@ -3,17 +3,48 @@ package client;
 import java.io.IOException;
 
 /**
- * The ClientMain class serves as the entry point for the client-side application. It initializes
- * the ClientService and ClientUI and starts the user interface.
+ * The ClientMain class is the entry point for the client application. It initializes the ClientUI
+ * and prompts the user for configurations, then creates the necessary client components and starts
+ * the client.
  */
 public class ClientMain {
 
+  /**
+   * The entry point for the client application. Initializes the client's components and starts the
+   * client.
+   *
+   * @param args The command-line arguments.
+   * @throws IOException if an I/O error occurs.
+   */
   public static void main(String[] args) throws IOException {
-    // Initialization of ClientNetwork and ClientUDP are deferred to ClientUI
-    // Network strategy selection for ClientService is also deferred to ClientUI
-    ClientService clientService = new ClientService(
-        null, 20000);  // Initially null, will be set up later in ClientUI based on user input
-    ClientUI clientUI = new ClientUI(clientService);
+    // Initialize ClientUI to prompt user for configurations
+    ClientUI clientUI = new ClientUI();
+    String serverAddress = clientUI.selectServerAddress();
+    int serverPort = clientUI.selectPort();
+    int timeout = clientUI.selectTimeout();
+    double requestSendProbability = clientUI.selectRequestSendProbability();
+    double replyReceiveProbability = clientUI.selectReplyReceiveProbability();
+    int maxRetries = clientUI.selectMaxRetries();
+    long freshnessInterval = clientUI.selectFreshnessInterval();
+
+    ClientUDP clientUDP = new ClientUDP(serverAddress, serverPort, timeout, requestSendProbability,
+        replyReceiveProbability);
+
+    ClientNetwork clientNetwork = new ClientNetwork(clientUDP, maxRetries);
+
+    ClientService clientService = new ClientService(clientNetwork, freshnessInterval);
+
+    clientUI.setClientService(clientService);
+
+    // Start the client to accept user commands and interact with the server
+    System.out.println(
+        "\n**Client is starting with server address " + serverAddress + " and port " + serverPort
+            + " with probabilities:\nrequest send = " + requestSendProbability
+            + ", response receive = "
+            + replyReceiveProbability
+            + ", maxRetries = " + maxRetries
+            + "and freshness interval = " + freshnessInterval
+            + "ms.**\n");
     clientUI.start();
   }
 }

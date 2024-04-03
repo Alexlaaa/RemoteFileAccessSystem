@@ -1,61 +1,46 @@
 package strategy;
 
-import client.ClientUDP;
-import java.io.IOException;
-import java.util.HashMap;
+import common.Request;
+import common.Response;
+import java.net.InetAddress;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import server.ServerService;
 
 /**
- * Implements the at-most-once invocation semantics for network communication. This strategy ensures
- * that a message is delivered and processed no more than once by the server, which is crucial for
- * non-idempotent operations to avoid duplicate processing.
+ * Server-side implementation of the at-most-once invocation semantics. Duplicate requests are
+ * filtered out and the server will not re-execute the operation for a duplicate request. Instead,
+ * the server will return the cached response. This ensures that the operation is executed at most
+ * once.
  */
-public class AtMostOnceStrategy implements NetworkStrategy {
+public class AtMostOnceStrategy implements ServerNetworkStrategy {
 
-  private final ClientUDP clientUDP; // The UDP client used for sending and receiving messages.
-  private final Map<String, byte[]> responseCache; // Cache to store responses for deduplication.
-
-  /**
-   * Constructs an instance of AtMostOnceStrategy with a specified UDPClient.
-   *
-   * @param clientUDP The UDP client used for network communication.
-   */
-  public AtMostOnceStrategy(ClientUDP clientUDP) {
-    this.clientUDP = clientUDP;
-    this.responseCache = new HashMap<>();
-  }
+  private final Map<Long, Response> responseCache = new ConcurrentHashMap<>();
 
   /**
-   * Sends a message and waits for a response, ensuring no duplicate requests are processed. It uses
-   * a cache to remember previous responses and avoids reprocessing of requests.
+   * Process the request using at-most-once semantics. Checks if the request has been processed
+   * before and uses the cached response.
    *
-   * @param request The request message to send as a byte array.
-   * @return The response message as a byte array, fetched from cache if available.
+   * @param request       The request to process.
+   * @param serverService The server service to handle the request.
+   * @param clientAddress The IP address of the client.
+   * @param clientPort    The port number of the client.
+   * @return The response to be sent back to the client, or null if it's a duplicate request.
    */
   @Override
-  public byte[] sendAndReceive(byte[] request) {
-    // Generate a key for the cache based on the request content.
-    String cacheKey = new String(
-        request); // A simplistic approach; consider a more robust method for real applications.
+  public Response processRequest(Request request, ServerService serverService,
+      InetAddress clientAddress, int clientPort) {
+    // Use request identifier to check for duplicates
+    long requestId = request.getRequestId();
 
-    // Check if the response for this request is already in the cache.
-    if (responseCache.containsKey(cacheKey)) {
-      return responseCache.get(cacheKey);
+    if (responseCache.containsKey(requestId)) {
+      // Return the cached response for a duplicate request
+      return responseCache.get(requestId);
+    } else {
+      // Process the request as it is seen the first time and cache the response
+      Response response = serverService.processRequest(request, clientAddress, clientPort);
+      responseCache.put(requestId, response);
+      return response;
     }
-
-    // If not in the cache, send the request and wait for the response.
-    byte[] response = null;
-    try {
-      response = clientUDP.sendAndReceive(request);
-      // If a response is received, store it in the cache.
-      if (response != null && response.length > 0) {
-        responseCache.put(cacheKey, response);
-      }
-    } catch (IOException e) {
-      // Handle IOExceptions as necessary; the response will remain null.
-    }
-
-    // Return the received response, which could be null in case of an error.
-    return response;
   }
 }
