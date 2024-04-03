@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Random;
+import marshalling.Unmarshaller;
 
 /**
  * ClientService acts as the intermediary between the client UI and the network layer, facilitating
@@ -122,21 +123,61 @@ public class ClientService {
   }
 
   /**
-   * Handles a request to monitor a file on the server for changes.
+   * Sends a request to the server to monitor a specified file for a given duration. Upon receiving
+   * a successful response, it starts listening for updates from the server regarding the file.
    *
    * @param filePath        The path of the file to monitor.
-   * @param monitorDuration The duration for which to monitor the file.
-   * @return A message indicating the status of the monitor request or an error message.
+   * @param monitorDuration The duration (in milliseconds) for which the file should be monitored.
    */
-  public String handleMonitorRequest(String filePath, long monitorDuration) {
+  public void handleMonitorRequest(String filePath, long monitorDuration) {
     Request request = new Request(generateRequestId(), Constants.OperationType.MONITOR, filePath,
         monitorDuration);
     try {
       Response response = clientNetwork.sendRequest(request);
-      return response.getMessage(); // Return the server's response message
+      if (!response.getMessage().isEmpty()) {
+        System.out.println("Monitor File Result: " + response.getMessage());
+        // Start listening for updates only if the request was successful
+        listenForUpdates(monitorDuration);
+      }
     } catch (IOException e) {
-      return "Error sending monitor request: " + e.getMessage();
+      System.out.println("Error sending monitor request: " + e.getMessage());
     }
+  }
+
+  /**
+   * Listens for updates from the server about the monitored file until the monitor duration
+   * expires. If updates are received, they are processed and the information is displayed to the
+   * user.
+   *
+   * @param monitorDuration The duration (in milliseconds) for which to listen for updates.
+   */
+  private void listenForUpdates(long monitorDuration) {
+    long startTime = System.currentTimeMillis();
+    System.out.println("Monitoring started. Waiting for updates...\n");
+    while (System.currentTimeMillis() - startTime < monitorDuration) {
+      try {
+        byte[] update = clientNetwork.getClientUDP().listenForUpdates();
+        if (update != null && update.length > 0) {
+          Response response = Unmarshaller.unmarshalResponse(update);
+          if (response.getStatusCode() == StatusCode.CALLBACK) {
+            System.out.println("Update received: " + response.getMessage());
+            if (response.getData() != null && response.getData().length > 0) {
+              System.out.println("Updated data: " + new String(response.getData()) + "\n");
+            }
+          }
+        }
+      } catch (IOException e) {
+        System.out.println("\nError while listening for updates: " + e.getMessage());
+      }
+      try {
+        Thread.sleep(1000); // Sleep to avoid a tight loop
+      } catch (InterruptedException ie) {
+        Thread.currentThread().interrupt();
+        System.out.println("\nMonitoring interrupted.");
+        break;
+      }
+    }
+    System.out.println("\nMonitoring ended.");
   }
 
   /**

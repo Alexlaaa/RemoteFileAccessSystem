@@ -1,11 +1,13 @@
 package server;
 
+import common.Constants;
 import common.Constants.StatusCode;
 import common.Request;
 import common.Response;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.net.InetAddress;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 
@@ -15,20 +17,26 @@ import java.util.Arrays;
  */
 public class ServerService {
 
+  private ServerMonitorService monitorService;
+
+  public void setMonitorService(ServerMonitorService monitorService) {
+    this.monitorService = monitorService;
+  }
+
   /**
    * Processes incoming requests from clients and generates appropriate responses based on the
    * operation type specified in the request.
    *
-   * @param request The request from the client.
+   * @param request       The request from the client.
+   * @param clientAddress The IP address of the client.
+   * @param clientPort    The port number of the client.
    * @return A response object that contains the result of the operation.
    */
-  public Response processRequest(Request request) {
+  public Response processRequest(Request request, InetAddress clientAddress, int clientPort) {
     return switch (request.getOperationType()) {
       case READ -> handleReadRequest(request);
       case WRITE_INSERT -> handleWriteInsertRequest(request);
-      case MONITOR ->
-        // Monitoring logic will be implemented separately.
-          handleMonitorRequest(request);
+      case MONITOR -> handleMonitorRequest(request, clientAddress, clientPort);
       case WRITE_DELETE -> handleWriteDeleteRequest(request);
       case FILE_INFO -> handleFileInfoRequest(request);
       default -> new Response(StatusCode.INVALID_OPERATION, null, "Invalid operation type.", -1);
@@ -136,6 +144,17 @@ public class ServerService {
         tempFile.delete();
       }
 
+      // After successfully writing to the file, we notify the monitor service about the update
+      try {
+        sourceFile.seek(0);  // Move to the start of the file to read the updated content
+        byte[] updatedContent = new byte[(int) sourceFile.length()]; // Create buffer to hold the updated content
+        sourceFile.readFully(updatedContent); // Read the updated content into the buffer
+        notifyFileUpdated(request.getFilePath(), updatedContent,
+            Constants.OperationType.WRITE_INSERT);  // Notify about the update
+      } catch (IOException e) {
+        System.err.println("Error while notifying about file update: " + e.getMessage());
+      }
+
       // Include the updated file length in the response message
       String message = "Write successful // Updated File Length -> " + sourceFile.length();
       return new Response(StatusCode.WRITE_INSERT_SUCCESS, null, message, file.lastModified());
@@ -146,14 +165,20 @@ public class ServerService {
   }
 
   /**
-   * Placeholder for handling monitor requests... TODO!!
+   * Registers a client for monitoring a file for updates.
    *
-   * @param request The monitoring request.
-   * @return A response indicating that monitoring is not yet implemented.
+   * @param request       The monitor request containing the file path and the duration for
+   *                      monitoring.
+   * @param clientAddress The IP address of the client.
+   * @param clientPort    The port number of the client.
+   * @return A response object indicating the success or failure of the monitor registration.
    */
-  private Response handleMonitorRequest(Request request) {
-    // Placeholder response until monitor implementation is complete.
-    return new Response(StatusCode.MONITOR_ERROR, null, "Monitor functionality not implemented.",
+  private Response handleMonitorRequest(Request request, InetAddress clientAddress,
+      int clientPort) {
+    String filePath = request.getFilePath();
+    long monitorDuration = request.getMonitorDuration();
+    monitorService.registerForMonitoring(filePath, clientAddress, clientPort, monitorDuration);
+    return new Response(StatusCode.MONITOR_SUCCESS, null, "Monitoring registered successfully.",
         -1);
   }
 
@@ -200,6 +225,17 @@ public class ServerService {
       // Write the remaining content back to the file
       sourceFile.write(remaining);
 
+      // After successfully deleting from the file, we notify the monitor service about the update
+      try {
+        sourceFile.seek(0);  // Move to the start of the file to read the updated content
+        byte[] updatedContent = new byte[(int) sourceFile.length()]; // Create buffer to hold the updated content
+        sourceFile.readFully(updatedContent); // Read the updated content into the buffer
+        notifyFileUpdated(request.getFilePath(), updatedContent,
+            Constants.OperationType.WRITE_DELETE);  // Notify about the update
+      } catch (IOException e) {
+        System.err.println("Error while notifying about file update: " + e.getMessage());
+      }
+
       // Include the updated file length in the response message
       String message = "Delete successful // Updated File Length -> " + sourceFile.length();
       return new Response(StatusCode.WRITE_DELETE_SUCCESS, null, message, file.lastModified());
@@ -241,6 +277,19 @@ public class ServerService {
 
     return new Response(StatusCode.FILE_INFO_SUCCESS, fileInfo.getBytes(),
         "File info retrieved successfully.", file.lastModified());
+  }
+
+
+  /**
+   * Notifies the monitor service that a file has been updated.
+   *
+   * @param filePath       The path of the file that was updated.
+   * @param updatedContent The updated content of the file.
+   * @throws IOException If an I/O error occurs during the update notification.
+   */
+  public void notifyFileUpdated(String filePath, byte[] updatedContent,
+      Constants.OperationType operationType) throws IOException {
+    monitorService.checkAndUpdateMonitors(filePath, updatedContent, operationType);
   }
 
 }

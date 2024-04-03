@@ -5,6 +5,7 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketTimeoutException;
+import java.util.Arrays;
 
 /**
  * The ClientUDP class is responsible for sending data to and receiving data from a server via UDP
@@ -79,6 +80,31 @@ public class ClientUDP {
     System.arraycopy(receiveData, 0, responseData, 0,
         receivePacket.getLength()); // Copy the received data from the receivePacket to the responseData array
     return responseData;
+  }
+
+  /**
+   * Listens for updates from the server. This method blocks until a packet is received or a timeout
+   * occurs.
+   *
+   * @return The data received in the update, or null if no data is received within the timeout
+   * period.
+   * @throws IOException if an I/O error occurs while receiving the data.
+   */
+  public byte[] listenForUpdates() throws IOException {
+    // Create a DatagramPacket to receive the data
+    DatagramPacket packet = new DatagramPacket(new byte[1024], 1024);
+
+    try {
+      // Wait for a packet to be received. This call blocks until either a packet is received
+      // or a timeout occurs, as set by socket.setSoTimeout(timeout).
+      socket.receive(packet);
+
+      // Copy the received data into a new array, trimming any excess bytes
+      return Arrays.copyOf(packet.getData(), packet.getLength());
+    } catch (SocketTimeoutException e) {
+      // If a timeout occurs, return null to indicate that no data was received
+      return null;
+    }
   }
 
   /**

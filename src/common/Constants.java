@@ -43,7 +43,8 @@ public class Constants {
     WRITE_DELETE_SUCCESS(400, "Write Delete Success"),
     WRITE_DELETE_ERROR(401, "Write Delete Error"),
     FILE_INFO_SUCCESS(500, "File Info Success"),
-    FILE_INFO_ERROR(501, "File Info Error");
+    FILE_INFO_ERROR(501, "File Info Error"),
+    CALLBACK(600, "Callback");
 
     private final int code;
     private final String description;

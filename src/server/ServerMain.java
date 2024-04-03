@@ -28,6 +28,12 @@ public class ServerMain {
     // Initialize the UDP server that listens for incoming client requests
     ServerUDP serverUDP = new ServerUDP(port, 1.0, 1.0, serverNetwork);
 
+    // Initialize the monitor service that manages file monitoring for clients
+    ServerMonitorService serverMonitorService = new ServerMonitorService(serverUDP);
+
+    // Set the monitor service in the server service
+    serverService.setMonitorService(serverMonitorService);
+
     // Start the server to listen for incoming requests
     System.out.println("Server is starting on port " + port);
     serverUDP.listen();

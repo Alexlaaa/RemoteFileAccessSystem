@@ -4,6 +4,7 @@ import common.Constants;
 import common.Request;
 import common.Response;
 import java.io.IOException;
+import java.net.InetAddress;
 import marshalling.Marshaller;
 import marshalling.Unmarshaller;
 
@@ -29,10 +30,13 @@ public class ServerNetwork {
    * Processes the received request, invokes the appropriate service method, and prepares the
    * response.
    *
-   * @param data The received byte array.
+   * @param data          The received byte array
+   * @param clientAddress The IP address of the client.
+   * @param clientPort    The port number of the client.
    * @return The byte array to be sent as a response.
    */
-  public byte[] processRequest(byte[] data) throws IOException {
+  public byte[] processRequest(byte[] data, InetAddress clientAddress, int clientPort)
+      throws IOException {
     Request request = Unmarshaller.unmarshalRequest(data);
     Response response;
 
@@ -42,7 +46,7 @@ public class ServerNetwork {
       System.out.println(
           "In ServerNetwork: Received request from client:\n"
               + request.toString() + "\n");
-      response = serverService.processRequest(request);
+      response = serverService.processRequest(request, clientAddress, clientPort);
       System.out.println(
           "In ServerNetwork: Sending response to client:\n"
               + response.toString() + "\n");

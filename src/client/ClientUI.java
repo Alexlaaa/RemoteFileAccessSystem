@@ -130,9 +130,7 @@ public class ClientUI {
   private void handleMonitorFile() {
     String filePath = promptForNonEmptyString("Enter file path:");
     long monitorDuration = promptForLong("Enter monitor duration (in milliseconds):");
-    String monitorResult = clientService.handleMonitorRequest(filePath, monitorDuration);
-    System.out.println(monitorResult.isEmpty() ? "Error monitoring file."
-        : "Monitor File Result: " + monitorResult);
+    clientService.handleMonitorRequest(filePath, monitorDuration);
   }
 
 

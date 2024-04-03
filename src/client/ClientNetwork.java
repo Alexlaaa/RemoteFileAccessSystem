@@ -73,4 +73,13 @@ public class ClientNetwork {
         "In ClientNetwork: Received response from server:\n" + response.toString() + "\n");
     return response;
   }
+
+  /**
+   * Gets the ClientUDP instance associated with this network.
+   *
+   * @return The ClientUDP instance.
+   */
+  public ClientUDP getClientUDP() {
+    return this.clientUDP;
+  }
 }
