@@ -44,7 +44,7 @@ public class ClientMain {
             + replyReceiveProbability
             + ", maxRetries = " + maxRetries
             + "and freshness interval = " + freshnessInterval
-            + "ms.**\n");
+            + "ms.**");
     clientUI.start();
   }
 }

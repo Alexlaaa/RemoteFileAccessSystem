@@ -35,7 +35,7 @@ public class ClientNetwork {
    * @throws IOException if network communication fails.
    */
   public Response sendRequest(Request request) throws IOException {
-    System.out.println("In ClientNetwork: Sending request to server:\n" + request);
+    System.out.println("\nIn ClientNetwork: Sending request to server:\n" + request);
 
     byte[] requestData = Marshaller.marshal(request);
     byte[] responseData = null;
@@ -47,12 +47,12 @@ public class ClientNetwork {
         responseData = clientUDP.sendAndReceive(requestData);
         // If the response is empty, it is considered a failed attempt.
         if (responseData == null || responseData.length == 0) {
-          System.out.println("No response received, retrying attempt " + (attempts + 1));
+          System.out.println("\nNo response received, retrying attempt " + (attempts + 1));
           attempts++;
           responseData = null; // Reset response data for the next attempt
         }
       } catch (IOException e) {
-        System.out.println("IOException occurred: " + e.getMessage());
+        System.out.println("\nIOException occurred: " + e.getMessage());
         attempts++;
       }
     }
@@ -60,14 +60,14 @@ public class ClientNetwork {
     // If after all retries no response is received, return an error response.
     if (responseData == null) {
       System.out.println(
-          "In ClinetNetwork: Failed to receive a response after " + maxRetries + " attempts.");
+          "\nIn ClientNetwork: Failed to receive a response after " + maxRetries + " attempts.");
       return new Response(Constants.StatusCode.GENERAL_ERROR, null,
           "No response received after maximum retries.", -1);
     }
 
     // Unmarshal the response and return it.
     Response response = Unmarshaller.unmarshalResponse(responseData);
-    System.out.println("In ClientNetwork: Received response from server:\n" + response);
+    System.out.println("\nIn ClientNetwork: Received response from server.");
     return response;
   }
 

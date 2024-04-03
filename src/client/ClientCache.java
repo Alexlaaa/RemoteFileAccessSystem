@@ -92,11 +92,11 @@ public class ClientCache {
         int startIndex = (int) (offset - entry.offset);
         int endIndex = (int) (startIndex + bytesToRead);
         // Extract the requested range from the cached content
-        System.out.println("In ClientCache: Cache Hit! Retrieving cached content...");
+        System.out.println("\nIn ClientCache: Cache Hit! Retrieving cached content...");
         return Arrays.copyOfRange(entry.content, startIndex, endIndex);
       }
     }
-    System.out.println("In ClientCache: Cache Miss!");
+    System.out.println("\nIn ClientCache: Cache Miss!");
     return null; // Return null to indicate that content needs to be fetched from the server
   }
 
@@ -140,5 +140,5 @@ public class ClientCache {
     }
     return -1;  // Indicates not cached or the range is not covered by the cache
   }
-  
+
 }

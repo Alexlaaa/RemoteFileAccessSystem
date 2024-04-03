@@ -209,6 +209,10 @@ public class ClientService {
     Request request = new Request(generateRequestId(), Constants.OperationType.FILE_INFO, filePath);
     try {
       Response response = clientNetwork.sendRequest(request);
+      // Check if response data is null
+      if (response.getData() == null || response.getData().length == 0) {
+        return "Error: No data received in response.";
+      }
       return new String(response.getData());
     } catch (IOException e) {
       return "Error fetching file info: " + e.getMessage();

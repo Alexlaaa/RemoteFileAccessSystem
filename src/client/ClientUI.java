@@ -30,7 +30,7 @@ public class ClientUI {
   public void start() throws IOException {
     while (true) {
       System.out.println(
-          "Enter command:\n1. Read File Content\n2. Write Content in File\n3. Monitor File\n4. Delete Content in File\n5. Read File Info\n6. Exit");
+          "\nEnter command:\n1. Read File Content\n2. Write Content in File\n3. Monitor File\n4. Delete Content in File\n5. Read File Info\n6. Exit");
       int command = scanner.nextInt();
       scanner.nextLine();  // Consume newline
 
@@ -53,11 +53,12 @@ public class ClientUI {
    * Handles the read file command from the user.
    */
   private void handleReadFile() {
-    String filePath = promptForNonEmptyString("Enter file path:");
+    String filePath = promptForNonEmptyString("\nEnter file path:");
     long offset = promptForLong("Enter offset:");
     long bytesToRead = promptForLong("Enter number of bytes to read:");
     String readResult = clientService.handleReadRequest(filePath, bytesToRead, offset);
-    System.out.println(readResult.isEmpty() ? "Error reading file." : "Read Result: " + readResult);
+    System.out.println(
+        readResult.isEmpty() ? "\nError reading file." : "\nRead Result: " + readResult);
   }
 
   /**
