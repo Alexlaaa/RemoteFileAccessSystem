@@ -24,7 +24,8 @@ public class AtLeastOnceStrategy implements ServerNetworkStrategy {
   public Response processRequest(Request request, ServerService serverService,
       InetAddress clientAddress, int clientPort) {
     System.out.println("Received request with ID: " + request.getRequestId());
-    System.out.println("Sending response to client:\n" + request.toString() + "\n");
-    return serverService.processRequest(request, clientAddress, clientPort);
+    Response response = serverService.processRequest(request, clientAddress, clientPort);
+    System.out.println("Response created:\n" + response.toString());
+    return response;
   }
 }
