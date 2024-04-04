@@ -100,6 +100,8 @@ public class ServerUDP {
     DatagramPacket responsePacket = new DatagramPacket(responseData, responseData.length,
         clientAddress, clientPort); // Create a packet to store the response data
     socket.send(responsePacket); // Send the response data to the client
+    System.out.println(
+        "In ServerUDP: responsePacket length: " + responsePacket.getLength() + " bytes sent.\n");
   }
 
   /**

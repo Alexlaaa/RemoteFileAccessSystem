@@ -33,7 +33,7 @@ public class ClientService {
     this.clientNetwork = clientNetwork;
     this.clientCache = new ClientCache(freshnessInterval);
   }
-  
+
   /**
    * Handles a request to read a file from the server. If the file content is cached, fresh and
    * within valid range, the cached content is returned without sending a request to the server.
@@ -59,36 +59,46 @@ public class ClientService {
         filePath, bytesToRead, offset);
     try {
       Response response = clientNetwork.sendRequest(request);
-      Constants.StatusCode statusCode = response.getStatusCode();
-      if (statusCode == Constants.StatusCode.READ_SUCCESS
-          || statusCode == StatusCode.READ_INCOMPLETE) {
-        long lastModifiedTimeByServer = response.getLastModifiedTimeAtServer();
-        // If not previously cached or is out of valid range, cache the file content
-        if (cachedLastModifiedTime == -1) {
-          System.out.println(
-              "In ClientService: File not previously cached or is out of valid range, caching content...\n");
-          clientCache.cacheFileContent(filePath, response.getData(), lastModifiedTimeByServer,
-              offset, bytesToRead);
-        }
-        // Else if previously cached and within valid range, but outdated, and still the same file as server, update validation time
-        else if (lastModifiedTimeByServer
-            == cachedLastModifiedTime) { // Indicating the file cached is the same as the server
-          System.out.println(
-              "In ClientService: File previously cached is within valid range and outdated, but still the same file as server (lastModifiedTimeByServer == cacheLastModifiedTime), updating cache validation time...\n");
-          // Update validation time of existing cache entry
-          clientCache.updateValidationTime(filePath, lastModifiedTimeByServer);
-        }
-        // Else if previously cached and within range and outdated, but different file than server, invalidate cache and cache new content
-        else {
-          System.out.println(
-              "In ClientService: File previously cached is within valid range and outdated, but is a different file from server (lastModifiedTimeByServer != cacheLastModifiedTime), invalidating cache and caching new content...\n");
-          clientCache.invalidate(filePath);
-          clientCache.cacheFileContent(filePath, response.getData(), lastModifiedTimeByServer,
-              offset, bytesToRead);
-        }
-        return new String(response.getData()) + "\n" + response.getMessage();
+
+      switch (response.getStatusCode()) {
+        case READ_SUCCESS, READ_INCOMPLETE:
+          long lastModifiedTimeByServer = response.getLastModifiedTimeAtServer();
+          // If not previously cached or is out of valid range, cache the file content
+          if (cachedLastModifiedTime == -1) {
+            System.out.println(
+                "In ClientService: File not previously cached or is out of valid range, caching content...\n");
+            clientCache.cacheFileContent(filePath, response.getData(), lastModifiedTimeByServer,
+                offset, bytesToRead);
+          }
+          // Else if previously cached and within valid range, but outdated, and still the same file as server, update validation time
+          else if (lastModifiedTimeByServer == cachedLastModifiedTime) {
+            System.out.println(
+                "In ClientService: File previously cached is within valid range and outdated, but still the same file as server (lastModifiedTimeByServer == cacheLastModifiedTime), updating cache validation time...\n");
+            // Update validation time of existing cache entry
+            clientCache.updateValidationTime(filePath, lastModifiedTimeByServer);
+          }
+          // Else if previously cached and within range and outdated, but different file than server, invalidate cache and cache new content
+          else {
+            System.out.println(
+                "In ClientService: File previously cached is within valid range and outdated, but is a different file from server (lastModifiedTimeByServer != cacheLastModifiedTime), invalidating cache and caching new content...\n");
+            clientCache.invalidate(filePath);
+            clientCache.cacheFileContent(filePath, response.getData(), lastModifiedTimeByServer,
+                offset, bytesToRead);
+          }
+          return new String(response.getData()) + "\n" + response.getMessage();
+
+        case NETWORK_ERROR:
+          return "Error: Network issue encountered while trying to read the file. Please try again.";
+
+        case GENERAL_ERROR:
+          return "Error: An unexpected error occurred while processing your request. Please try again.";
+
+        case READ_ERROR:
+          return "Error: Read request failed. " + response.getMessage();
+
+        default:
+          return "Error: Unexpected status code " + response.getStatusCode();
       }
-      return "Error: Read request unsuccessful. Status code: " + response.getStatusCode();
     } catch (IOException e) {
       return "Error sending read request: " + e.getMessage();
     }

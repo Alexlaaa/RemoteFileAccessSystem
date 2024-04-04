@@ -33,6 +33,7 @@ public class Constants {
     GENERAL_ERROR(1, "General Error"),
     INVALID_OPERATION(2, "Invalid Operation"),
     SHUTDOWN(3, "Server Shutdown"),
+    NETWORK_ERROR(4, "Network Error"),
     READ_SUCCESS(100, "Read Success"),
     READ_ERROR(101, "Read Error"),
     READ_INCOMPLETE(102, "Read Incomplete"),

@@ -60,25 +60,25 @@ public class ClientUDP {
     socket.send(sendPacket);
 
     // Preparing to receive
+    byte[] responseData = null; // Allocate a byte array to store the received data
     if (!toReceive()) {
       System.out.println("In ClientUDP: Packet loss from server to client.");
-      return new byte[0]; // Returns an empty array to indicate no data received due to packet loss
+      return null;  // Return null to indicate packet loss.
     }
     byte[] receiveData = new byte[1024]; // Allocate a byte array to store the incoming data
     DatagramPacket receivePacket = new DatagramPacket(receiveData,
         receiveData.length); // Create a packet to store the incoming data with the allocated byte array
-
     try {
-      socket.receive(
-          receivePacket); // Attempt to receive the packet, this call is blocking and will wait until a packet is received or the timeout is reached
+      socket.receive(receivePacket);
+      System.out.println(
+          "In ClientUDP: receivePacket length = " + receivePacket.getLength() + " bytes received.");
+      responseData = new byte[receivePacket.getLength()];
+      System.arraycopy(receiveData, 0, responseData, 0, receivePacket.getLength());
     } catch (SocketTimeoutException e) {
       System.err.println("\nTimeout reached: " + e.getMessage());
-      close(); // to remove?
-      return new byte[0]; // Returns an empty array to indicate no data received due to timeout
+      close();
+      return null;  // Return null to indicate a timeout situation.
     }
-    byte[] responseData = new byte[receivePacket.getLength()]; // Allocate a byte array to store the received data from the receivePacket, with length equal to that of the received data
-    System.arraycopy(receiveData, 0, responseData, 0,
-        receivePacket.getLength()); // Copy the received data from the receivePacket to the responseData array
     return responseData;
   }
 

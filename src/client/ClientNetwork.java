@@ -41,33 +41,35 @@ public class ClientNetwork {
     byte[] responseData = null;
     int attempts = 0;
 
-    // Loop until a response is received or the maximum number of retries is reached.
-    while (responseData == null && attempts < maxRetries) {
-      try {
-        responseData = clientUDP.sendAndReceive(requestData);
-        // If the response is empty, it is considered a failed attempt.
-        if (responseData == null || responseData.length == 0) {
-          System.out.println("\nNo response received, retrying attempt " + (attempts + 1));
-          attempts++;
-          responseData = null; // Reset response data for the next attempt
-        }
-      } catch (IOException e) {
-        System.out.println("\nIOException occurred: " + e.getMessage());
+    // Retry sending the request until a valid response (non-null and non-empty) is received or the maximum number of retries
+    while ((responseData == null || responseData.length == 0) && attempts < maxRetries) {
+      responseData = clientUDP.sendAndReceive(requestData);
+      if (responseData == null || responseData.length == 0) {
+        System.out.println("\nNo or empty response received, retrying attempt " + (attempts + 1));
         attempts++;
       }
     }
 
-    // If after all retries no response is received, return an error response.
-    if (responseData == null) {
+    // If no valid response is received after maxRetries, return a NETWORK_ERROR response
+    if (responseData == null || responseData.length == 0) {
       System.out.println(
-          "\nIn ClientNetwork: Failed to receive a response after " + maxRetries + " attempts.");
-      return new Response(Constants.StatusCode.GENERAL_ERROR, null,
-          "No response received after maximum retries.", -1);
+          "\nIn ClientNetwork: No valid response received after " + maxRetries + " attempts.");
+      return new Response(Constants.StatusCode.NETWORK_ERROR, null, "No valid response received.",
+          -1);
     }
 
-    // Unmarshal the response and return it.
+    // Else there is a non-null and potentially valid response, unmarshal it
     Response response = Unmarshaller.unmarshalResponse(responseData);
-    System.out.println("\nIn ClientNetwork: Received response from server.");
+    // Validate the response
+    if (!isValidResponse(response)) {
+      System.out.println(
+          "\nIn ClientNetwork: Received an invalid response:\n" + response.toString() + "\n");
+      return new Response(Constants.StatusCode.GENERAL_ERROR, null, "Invalid response received.",
+          -1);
+    }
+    // Response is validated
+    System.out.println(
+        "\nIn ClientNetwork: Received a valid response from server:\n" + response + "\n");
     return response;
   }
 
@@ -78,5 +80,15 @@ public class ClientNetwork {
    */
   public ClientUDP getClientUDP() {
     return clientUDP;
+  }
+
+  /**
+   * Checks if the response is valid.
+   *
+   * @param response The response to validate.
+   * @return True if the response is valid, false otherwise.
+   */
+  private boolean isValidResponse(Response response) {
+    return response != null && response.getStatusCode() != null;
   }
 }
