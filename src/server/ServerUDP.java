@@ -93,7 +93,7 @@ public class ServerUDP {
   public void send(byte[] responseData, InetAddress clientAddress, int clientPort)
       throws IOException {
     if (!toSend()) {
-      System.out.println("Packet loss from server to client.");
+      System.out.println("Packet loss from server to client.\n");
       return;
     }
 
@@ -101,7 +101,7 @@ public class ServerUDP {
         clientAddress, clientPort); // Create a packet to store the response data
     socket.send(responsePacket); // Send the response data to the client
     System.out.println(
-        "In ServerUDP: responsePacket length: " + responsePacket.getLength() + " bytes sent.\n");
+        "Packet of length " + responsePacket.getLength() + " bytes sent to client.\n");
   }
 
   /**

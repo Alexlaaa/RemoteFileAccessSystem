@@ -49,8 +49,8 @@ public class ServerNetwork {
     Request request = Unmarshaller.unmarshalRequest(data);
     Response response = networkStrategy.processRequest(request, serverService, clientAddress,
         clientPort);
-    System.out.println(
-        "Marshalling the response to be sent to client:\n" + response.toString());
+//    System.out.println(
+//        "Marshalling the response to be sent to client:\n" + response.toString());
 
     return Marshaller.marshal(response);
   }

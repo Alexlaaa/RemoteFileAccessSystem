@@ -62,7 +62,7 @@ public class ClientUDP {
     // Preparing to receive
     byte[] responseData = null; // Allocate a byte array to store the received data
     if (!toReceive()) {
-      System.out.println("In ClientUDP: Packet loss from server to client.");
+      System.out.println("Packet loss from server to client.");
       return null;  // Return null to indicate packet loss.
     }
     byte[] receiveData = new byte[1024]; // Allocate a byte array to store the incoming data
@@ -71,12 +71,12 @@ public class ClientUDP {
     try {
       socket.receive(receivePacket);
       System.out.println(
-          "In ClientUDP: receivePacket length = " + receivePacket.getLength() + " bytes received.");
+          "Packet of length " + receivePacket.getLength()
+              + " bytes received from server.");
       responseData = new byte[receivePacket.getLength()];
       System.arraycopy(receiveData, 0, responseData, 0, receivePacket.getLength());
     } catch (SocketTimeoutException e) {
       System.err.println("\nTimeout reached: " + e.getMessage());
-      close();
       return null;  // Return null to indicate a timeout situation.
     }
     return responseData;

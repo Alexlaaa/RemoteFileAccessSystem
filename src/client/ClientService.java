@@ -51,7 +51,7 @@ public class ClientService {
 
     // Cache hit, content is fresh and within valid range, return cached content
     if (cachedLastModifiedTime != -1 && cachedContent != null && cachedContent.length > 0) {
-      return "*Content retrieved from cache:*\n" + new String(cachedContent);
+      return "*Content retrieved from cache*\n" + new String(cachedContent);
     }
 
     // Cache miss, content is not cached, is outdated or is out of valid range, send read request to server
@@ -66,21 +66,21 @@ public class ClientService {
           // If not previously cached or is out of valid range, cache the file content
           if (cachedLastModifiedTime == -1) {
             System.out.println(
-                "In ClientService: File not previously cached or is out of valid range, caching content...\n");
+                "File not previously cached or is out of valid range, caching content...\n");
             clientCache.cacheFileContent(filePath, response.getData(), lastModifiedTimeByServer,
                 offset, bytesToRead);
           }
           // Else if previously cached and within valid range, but outdated, and still the same file as server, update validation time
           else if (lastModifiedTimeByServer == cachedLastModifiedTime) {
             System.out.println(
-                "In ClientService: File previously cached is within valid range and outdated, but still the same file as server (lastModifiedTimeByServer == cacheLastModifiedTime), updating cache validation time...\n");
+                "File previously cached is within valid range and outdated, but still the same file as server (lastModifiedTimeByServer == cacheLastModifiedTime), updating cache validation time...\n");
             // Update validation time of existing cache entry
             clientCache.updateValidationTime(filePath, lastModifiedTimeByServer);
           }
           // Else if previously cached and within range and outdated, but different file than server, invalidate cache and cache new content
           else {
             System.out.println(
-                "In ClientService: File previously cached is within valid range and outdated, but is a different file from server (lastModifiedTimeByServer != cacheLastModifiedTime), invalidating cache and caching new content...\n");
+                "File previously cached is within valid range and outdated, but is a different file from server (lastModifiedTimeByServer != cacheLastModifiedTime), invalidating cache and caching new content...\n");
             clientCache.invalidate(filePath);
             clientCache.cacheFileContent(filePath, response.getData(), lastModifiedTimeByServer,
                 offset, bytesToRead);
@@ -154,7 +154,7 @@ public class ClientService {
    */
   private void listenForUpdates(long monitorDuration) {
     long startTime = System.currentTimeMillis();
-    System.out.println("Monitoring started. Waiting for updates...\n");
+    System.out.println("\n== Monitoring started. Waiting for updates... ==\n");
     while (System.currentTimeMillis() - startTime < monitorDuration) {
       try {
         byte[] update = clientNetwork.getClientUDP().listenForUpdates();

@@ -35,7 +35,7 @@ public class ClientNetwork {
    * @throws IOException if network communication fails.
    */
   public Response sendRequest(Request request) throws IOException {
-    System.out.println("\nIn ClientNetwork: Sending request to server:\n" + request);
+    System.out.println("\nSending request to server:\n" + request);
 
     byte[] requestData = Marshaller.marshal(request);
     byte[] responseData = null;
@@ -45,7 +45,7 @@ public class ClientNetwork {
     while ((responseData == null || responseData.length == 0) && attempts < maxRetries) {
       responseData = clientUDP.sendAndReceive(requestData);
       if (responseData == null || responseData.length == 0) {
-        System.out.println("\nNo or empty response received, retrying attempt " + (attempts + 1));
+        System.out.println("No/empty response received, retrying attempt " + (attempts + 1));
         attempts++;
       }
     }
@@ -53,7 +53,7 @@ public class ClientNetwork {
     // If no valid response is received after maxRetries, return a NETWORK_ERROR response
     if (responseData == null || responseData.length == 0) {
       System.out.println(
-          "\nIn ClientNetwork: No valid response received after " + maxRetries + " attempts.");
+          "\nNo valid response received after " + maxRetries + " attempts.");
       return new Response(Constants.StatusCode.NETWORK_ERROR, null, "No valid response received.",
           -1);
     }
@@ -63,13 +63,13 @@ public class ClientNetwork {
     // Validate the response
     if (!isValidResponse(response)) {
       System.out.println(
-          "\nIn ClientNetwork: Received an invalid response:\n" + response.toString() + "\n");
+          "\nReceived an invalid response:\n" + response.toString() + "\n");
       return new Response(Constants.StatusCode.GENERAL_ERROR, null, "Invalid response received.",
           -1);
     }
     // Response is validated
     System.out.println(
-        "\nIn ClientNetwork: Received a valid response from server:\n" + response + "\n");
+        "\nReceived a valid response from server:\n" + response + "\n");
     return response;
   }
 

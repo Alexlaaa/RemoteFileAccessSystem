@@ -58,7 +58,7 @@ public class ClientUI {
     long bytesToRead = promptForLong("Enter number of bytes to read:");
     String readResult = clientService.handleReadRequest(filePath, bytesToRead, offset);
     System.out.println(
-        readResult.isEmpty() ? "\nError reading file." : "\nRead Result: " + readResult);
+        readResult.isEmpty() ? "\nError reading file." : "\n== Read Result ==\n" + readResult);
   }
 
   /**
@@ -71,7 +71,7 @@ public class ClientUI {
     String data = scanner.nextLine();  // Data can include any character, so no validation needed.
     String writeInsertResult = clientService.handleWriteInsertRequest(filePath, offset, data);
     System.out.println(writeInsertResult.isEmpty() ? "Error writing content in file."
-        : "Write Content In File Result: " + writeInsertResult);
+        : "== Write Content In File Result ==\n" + writeInsertResult);
   }
 
   /**
@@ -94,7 +94,7 @@ public class ClientUI {
     String writeDeleteResult = clientService.handleWriteDeleteRequest(filePath, bytesToDelete,
         offset);
     System.out.println(writeDeleteResult.isEmpty() ? "Error deleting content in file."
-        : "Delete Content In File Result: " + writeDeleteResult);
+        : "== Delete Content In File Result ==\n" + writeDeleteResult);
   }
 
 
@@ -106,7 +106,8 @@ public class ClientUI {
     String filePath = promptForNonEmptyString("Enter file path:");
     String infoResult = clientService.handleFileInfoRequest(filePath);
     System.out.println(
-        infoResult.isEmpty() ? "Error reading file info." : "\n== File Info ==\n" + infoResult);
+        infoResult.isEmpty() ? "Error reading file info."
+            : "\n== File Info Result ==\n" + infoResult);
   }
 
   /**
@@ -217,7 +218,7 @@ public class ClientUI {
    */
   public int selectTimeout() {
     return promptForInt(
-        "\nEnter the timeout in milliseconds for the client to wait for a response (e.g., 10,000ms):");
+        "\nEnter the timeout in milliseconds for the client to wait for a response (e.g., 5000ms):");
   }
 
   /**

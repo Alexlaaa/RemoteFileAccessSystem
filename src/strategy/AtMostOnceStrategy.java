@@ -36,8 +36,8 @@ public class AtMostOnceStrategy implements ServerNetworkStrategy {
     System.out.println("Received request with ID: " + requestId);
     if (responseCache.containsKey(requestId)) {
       // Return the cached response for a duplicate request
-      System.out.println("Duplicate request received. Returning cached response:"
-          + responseCache.get(requestId).toString() + "\n");
+      System.out.println("Duplicate request received. Returning cached response:\n"
+          + responseCache.get(requestId).toString());
       return responseCache.get(requestId);
     } else {
       // Process the request as it is seen the first time and cache the response

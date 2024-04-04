@@ -79,7 +79,7 @@ public class ServerService {
       }
 
       // Include the file length in the response message
-      String message = "Read successful // File Length -> " + sourceFile.length();
+      String message = "-- Read successful // File Length -> " + sourceFile.length() + " --";
 
       // Read operation was successful
       return new Response(StatusCode.READ_SUCCESS, data,

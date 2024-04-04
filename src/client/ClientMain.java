@@ -22,8 +22,8 @@ public class ClientMain {
     String serverAddress = clientUI.selectServerAddress();
     int serverPort = clientUI.selectPort();
     int timeout = clientUI.selectTimeout();
-    double requestSendProbability = clientUI.selectRequestSendProbability();
-    double replyReceiveProbability = clientUI.selectReplyReceiveProbability();
+    double requestSendProbability = 1; // Assumption: Client will always send requests
+    double replyReceiveProbability = 1; // Assumption: Client will always receive replies
     int maxRetries = clientUI.selectMaxRetries();
     long freshnessInterval = clientUI.selectFreshnessInterval();
 
@@ -39,7 +39,7 @@ public class ClientMain {
     // Start the client to accept user commands and interact with the server
     System.out.println(
         "\n**Client is starting with server address " + serverAddress + " and port " + serverPort
-            + " with probabilities:\nrequest send = " + requestSendProbability
+            + " with default probabilities:\nrequest send = " + requestSendProbability
             + ", response receive = "
             + replyReceiveProbability
             + ", maxRetries = " + maxRetries
