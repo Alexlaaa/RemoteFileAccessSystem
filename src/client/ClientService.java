@@ -17,7 +17,7 @@ import marshalling.Unmarshaller;
  */
 public class ClientService {
 
-  private ClientNetwork clientNetwork;
+  private final ClientNetwork clientNetwork;
   private final ClientCache clientCache;
   private final Random random = new Random();
 
