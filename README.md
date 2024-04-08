@@ -8,6 +8,7 @@
 **`javac client/*.java common/*.java marshalling/*.java -d ../out`**<br />
 3. Run the client:<br />
 **`java -cp ../out client.ClientMain`**<br />
+Server address: 10.91.137.17
 
 ### In Server’s Command Line Interface:
 1. Locate the /src directory of the SC4051-RemoteFileAccessSystem project.<br />
